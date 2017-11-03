@@ -1,0 +1,59 @@
+"===========================================================================
+" ウインドウ・タブ window
+"===========================================================================
+" CTRL-hjklでウィンドウ移動
+nnoremap <C-j> <C-w>j
+nnoremap <C-k> <C-w>k
+nnoremap <C-l> <C-w>l
+nnoremap <C-h> <C-w>h
+
+" sを潰す
+nnoremap s <Nop>
+
+" ウィンドウ間の移動
+nnoremap sj <C-w>j
+nnoremap sk <C-w>k
+nnoremap sl <C-w>l
+nnoremap sh <C-w>h
+nnoremap sw <C-w>w
+
+" ウィンドウ自体の移動
+nnoremap sJ <C-w>J
+nnoremap sK <C-w>K
+nnoremap sL <C-w>L
+nnoremap sH <C-w>H
+nnoremap sr <C-w>r
+
+" 新規タブ
+nnoremap st :<C-u>tabnew<CR>
+" タブ切り替え
+nnoremap sn gt
+nnoremap s<Right> gt
+nnoremap sp gT
+nnoremap s<Left> gT
+
+" ウィンドウサイズ関連
+nnoremap s= <C-w>=
+nnoremap so <C-w>_<C-w>|
+nnoremap sO <C-w>=
+"call submode#enter_with('bufmove', 'n', '', 's>', '<C-w>>')
+"call submode#enter_with('bufmove', 'n', '', 's<', '<C-w><')
+"call submode#enter_with('bufmove', 'n', '', 's+', '<C-w>+')
+"call submode#enter_with('bufmove', 'n', '', 's-', '<C-w>-')
+"call submode#map('bufmove', 'n', '', '>', '<C-w>>')
+"call submode#map('bufmove', 'n', '', '<', '<C-w><')
+"call submode#map('bufmove', 'n', '', '+', '<C-w>+')
+"call submode#map('bufmove', 'n', '', '-', '<C-w>-')
+
+
+" バッファ移動
+nnoremap sN :<C-u>bn<CR>
+nnoremap sP :<C-u>bp<CR>
+
+" ウィンドウ分割
+nnoremap ss :<C-u>sp<CR>
+nnoremap sv :<C-u>vs<CR>
+
+" ウィンドウ/バッファクローズ
+nnoremap sq :<C-u>q<CR>
+nnoremap sQ :<C-u>bd<CR>

@@ -1,0 +1,75 @@
+" NeoBundle用の設定
+
+"NeoBundle Scripts-----------------------------
+if &compatible
+  set nocompatible
+endif
+
+" Required:
+set runtimepath+=/Users/bubble/.vim/bundle/neobundle.vim
+
+" Required:
+call neobundle#begin(expand('/Users/bubble/.vim/bundle'))
+
+" Let NeoBundle manage NeoBundle
+" Required:
+NeoBundleFetch 'Shougo/neobundle.vim'
+
+"===========================================================================
+" プラグイン
+"===========================================================================
+
+" ファイルオープン
+NeoBundle 'Shougo/unite.vim'
+" unite.vimで最近使ったファイル
+NeoBundle 'Shougo/neomru.vim'
+" ツリー表示
+NeoBundle 'scrooloose/nerdtree'
+
+" Git
+NeoBundle 'tpope/vim-fugitive'
+
+" コメント(Ctrl + -)
+NeoBundle 'tomtom/tcomment_vim'
+" 囲む
+NeoBundle 'tpope/vim-surround'
+
+" インデント可視化
+NeoBundle 'nathanaelkane/vim-indent-guides'
+" NeoBundle 'Yggdroot/indentLine' " https://qiita.com/Layzie/items/a1c8d14bccb14c02eb1b
+
+" ステータスラインの表示内容強化
+NeoBundle 'itchyny/lightline.vim'
+
+" 自動補完など
+if has('lua') " lua機能が有効になっている場合
+    " コードの自動補完
+    NeoBundle 'Shougo/neocomplete.vim'
+    " スニペットの補完機能
+    NeoBundle "Shougo/neosnippet"
+    " スニペット集
+    NeoBundle 'Shougo/neosnippet-snippets'
+endif
+
+" 構文エラーチェック
+" NeoBundle 'scrooloose/syntastic'
+
+" for LaTeX
+let g:vimtex_compiler_latexmk = {'callback' : 0}
+NeoBundle 'lervag/vimtex'
+
+" vimから実行
+NeoBundle 'thinca/vim-quickrun'
+
+"===========================================================================
+
+" Required:
+call neobundle#end()
+
+" Required:
+filetype plugin indent on
+
+" If there are uninstalled bundles found on startup,
+" this will conveniently prompt you to install them.
+NeoBundleCheck
+"End NeoBundle Scripts-------------------------

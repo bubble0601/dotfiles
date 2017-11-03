@@ -1,0 +1,113 @@
+"---------------------------------------------------------------------------
+" 移動設定 Move
+"---------------------------------------------------------------------------
+
+" カーソルを表示行(折返しを行として扱う)で移動する。論理行移動は<C-n>,<C-p>
+nnoremap <Up>   gk
+nnoremap <Down> gj
+vnoremap <Up>   gk
+vnoremap <Down> gj
+nnoremap k  gk
+nnoremap k  gk
+nnoremap j  gj
+vnoremap k  gk
+vnoremap j  gj
+nnoremap gk k
+nnoremap gj j
+vnoremap gk k
+vnoremap gj j
+"nnoremap h <Left>
+"nnoremap l <Right>
+"nnoremap <Down> gj
+"nnoremap <Up>   gk
+
+"Shift+hjklで行頭行末 空行
+nnoremap <S-h> ^
+nnoremap <S-j> }
+nnoremap <S-k> {
+nnoremap <S-l> $l
+nnoremap <S-Left> ^
+nnoremap <S-Down> }
+nnoremap <S-Up> {
+nnoremap <S-Right> $l
+nnoremap <S-^> $l
+
+" insert/visual mode での移動
+inoremap <S-Right> <END>
+vnoremap <S-Right> <END>
+inoremap <S-Left> <HOME>
+vnoremap <S-Left> <HOME>
+
+"ブラウザと同じ操作 スペースでダウンアップ
+"nnoremap <Space>  <C-E>
+"nnoremap <S-Space> <C-Y>
+
+" インサートモードでもhjklで移動（Ctrl押すけどね）
+"inoremap <C-j> <Down>
+"inoremap <C-k> <Up>
+"inoremap <C-h> <Left>
+"inoremap <C-l> <Right>
+
+"<space>j, <space>kで画面送り
+nnoremap <Space>j <C-f>
+nnoremap <Space>k <C-b>
+
+" spaceで次のbufferへ。back-spaceで前のbufferへ
+"nmap <Space><Space> ;MBEbn<CR>
+"nmap <BS><BS> ;MBEbp<CR>
+
+" F2で前のバッファ
+"map <F2> <ESC>;bp<CR>
+" F3で次のバッファ
+"map <F3> <ESC>;bn<CR>
+" F4でバッファを削除する
+"map <F4> <ESC>:bnext \| bdelete #<CR>
+"command! Bw :bnext \| bdelete #
+
+"フレームサイズを怠惰に変更する
+"map <kPlus> <C-W>+
+"map <kMinus> <C-W>-
+
+" 最後に編集された位置に移動
+"nnoremap gb '[
+"nnoremap gp ']
+
+" 対応する括弧に移動
+nnoremap ( %
+nnoremap ) %
+
+" 最後に変更されたテキストを選択する
+"nnoremap gc  `[v`]
+"vnoremap gc <C-u>normal gc<Enter>
+"onoremap gc <C-u>normal gc<Enter>
+
+" カーソル位置の単語をyankする
+"nnoremap vy vawy
+
+" 矩形選択で自由に移動する
+set virtualedit+=block
+
+" 行末の1文字先までカーソルを移動できるように
+set virtualedit+=onemore
+nnoremap $ $l
+
+"ビジュアルモード時vで行末まで選択
+vnoremap v $h
+
+" マウス移動
+if has('mouse')
+    set mouse=a
+    if has('mouse_sgr')
+        set ttymouse=sgr
+    elseif v:version > 703 || v:version is 703 && has('patch632')
+        set ttymouse=sgr
+    else
+        set ttymouse=xterm2
+    endif
+endif
+
+" 数字Enterでn行目に移動. Enterでファイルの末尾. BSでファイルの先頭.
+nnoremap <CR> G
+vnoremap <CR> G
+nnoremap <BS> gg
+vnoremap <BS> gg

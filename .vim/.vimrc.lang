@@ -1,0 +1,37 @@
+"===========================================================================
+" Vue
+"===========================================================================
+augroup vue
+    autocmd!
+    autocmd BufNewFile,BufRead *.{html,htm,vue*} set filetype=html
+    autocmd BufNewFile,BufRead *.vue setlocal tabstop=2 softtabstop=2 shiftwidth=2
+    autocmd BufNewFile,BufRead *.vue set foldmethod=indent
+augroup end
+
+"===========================================================================
+" JS
+"===========================================================================
+augroup js
+    autocmd!
+    autocmd BufNewFile,BufRead *.js setlocal tabstop=2 softtabstop=2 shiftwidth=2
+augroup end
+
+"===========================================================================
+" HTML, XML
+"===========================================================================
+" 閉タグを自動挿入
+augroup XML
+    autocmd!
+    autocmd Filetype xml inoremap <buffer> </ </<C-x><C-o>
+    autocmd Filetype html inoremap <buffer> </ </<C-x><C-o>
+augroup END
+
+"===========================================================================
+" text
+"===========================================================================
+augroup txt
+    autocmd!
+    autocmd FileType text set foldmethod=indent
+augroup END
+
+"===========================================================================

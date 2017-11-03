@@ -1,0 +1,7 @@
+let g:netrw_dirhistmax  =10
+let g:netrw_dirhist_cnt =5
+let g:netrw_dirhist_1='/private/etc/ssh'
+let g:netrw_dirhist_2='/d/Carta/Program/.git'
+let g:netrw_dirhist_3='/Applications/MAMP/bin/php'
+let g:netrw_dirhist_4='/Applications/MAMP/bin/php/php5.6.25'
+let g:netrw_dirhist_5='/Users/bubble/.vim'

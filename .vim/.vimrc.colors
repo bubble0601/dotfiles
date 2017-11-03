@@ -1,0 +1,14 @@
+"---------------------------------------------------------------------------
+" カラー関連 Colors
+"---------------------------------------------------------------------------
+
+colorscheme molokai
+
+" ハイライト
+syntax enable
+
+"コメントの色変更
+highlight Comment ctermfg=DarkCyan
+
+"ステータスラインの色
+highlight StatusLine term=bold cterm=bold ctermfg=black ctermbg=white

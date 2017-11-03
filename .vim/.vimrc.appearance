@@ -1,0 +1,38 @@
+"---------------------------------------------------------------------------
+" 表示 Apperance
+"---------------------------------------------------------------------------
+set showmatch           " 括弧の対応をハイライト
+set matchtime=1         " showmatchの時間を短く
+set number              " 行番号表示
+"set list                " 不可視文字表示
+"set listchars=tab:>.,trail:_,extends:>,precedes:< " 不可視文字の表示形式
+set display=uhex        " 印字不可能文字を16進数で表示
+set display=lastline    " 長い行を最後まで表示
+
+" カーソル行をハイライト
+set cursorline
+
+" コマンド実行中は再描画しない
+set lazyredraw
+" 高速ターミナル接続を行う
+set ttyfast
+
+" 一部の全角記号を全角表示にする(半角表示になるものがある)
+set ambiwidth=double
+
+" Windowsでパスの区切り文字をスラッシュで扱う
+"set shellslash
+
+" 全角スペース表示
+function! ZenkakuSpace()
+    highlight ZenkakuSpace cterm=underline ctermfg=lightblue guibg=darkgray
+endfunction
+
+if has('syntax')
+    augroup ZenkakuSpace
+        autocmd!
+        autocmd ColorScheme * call ZenkakuSpace()
+        autocmd VimEnter,WinEnter,BufRead * let w:m1=matchadd('ZenkakuSpace', '　')
+    augroup END
+    call ZenkakuSpace()
+endif

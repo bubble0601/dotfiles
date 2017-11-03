@@ -1,0 +1,14 @@
+lightline.vim
+neobundle.vim
+neocomplete.vim
+neomru.vim
+neosnippet
+neosnippet-snippets
+nerdtree
+tcomment_vim
+unite.vim
+vim-fugitive
+vim-indent-guides
+vim-quickrun
+vim-surround
+vimtex
