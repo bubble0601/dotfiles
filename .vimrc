@@ -2,7 +2,7 @@
 set encoding=utf-8
 scriptencoding utf-8
 
-"vunlde.vim/.vimで管理してるpluginを読み込む
+".vim/bundleで管理してるpluginを読み込む
 source ~/.vim/.vimrc.bundle
 
 "基本設定

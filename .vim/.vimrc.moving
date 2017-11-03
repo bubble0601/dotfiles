@@ -7,7 +7,8 @@ nnoremap <Up>   gk
 nnoremap <Down> gj
 vnoremap <Up>   gk
 vnoremap <Down> gj
-nnoremap k  gk
+inoremap <Up>   <ESC>gka
+inoremap <Down> <ESC>gja
 nnoremap k  gk
 nnoremap j  gj
 vnoremap k  gk
