@@ -12,3 +12,11 @@ set tabstop=4
 set shiftwidth=4
 " softtabstopはTabキー押し下げ時の挿入される空白の量，0の場合はtabstopと同じ，BSにも影響する
 set softtabstop=4
+
+"インデント変更
+command! -nargs=1 Indent call g:Indent(<args>)
+function! g:Indent(len)
+    execute 'setlocal tabstop=' . a:len
+    execute 'setlocal shiftwidth=' . a:len
+    execute 'setlocal softtabstop=' . a:len
+endfunction

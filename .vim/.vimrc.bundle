@@ -58,6 +58,9 @@ endif
 let g:vimtex_compiler_latexmk = {'callback' : 0}
 NeoBundle 'lervag/vimtex'
 
+" for pug
+NeoBundle 'digitaltoad/vim-pug'
+
 " vimから実行
 NeoBundle 'thinca/vim-quickrun'
 

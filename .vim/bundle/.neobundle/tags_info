@@ -9,6 +9,7 @@ tcomment_vim
 unite.vim
 vim-fugitive
 vim-indent-guides
+vim-pug
 vim-quickrun
 vim-surround
 vimtex
