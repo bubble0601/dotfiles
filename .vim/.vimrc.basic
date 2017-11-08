@@ -42,3 +42,8 @@ nnoremap <Space>Q  :<C-u>q!<CR>
 
 ""0"で始まる数値を、8進数として扱わないようにする
 set nrformats-=octal
+
+" バッファ
+nnoremap <silent> <F2> :bp<cr>
+nnoremap <silent> <F3> :bn<cr>
+nnoremap bb :ls<CR>:buf 
