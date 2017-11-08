@@ -31,6 +31,8 @@ nnoremap sn gt
 nnoremap s<Right> gt
 nnoremap sp gT
 nnoremap s<Left> gT
+" 全てのタブを閉じる
+nnoremap saq :<C-u>tabdo quit<CR>
 
 " ウィンドウサイズ関連
 nnoremap s= <C-w>=
