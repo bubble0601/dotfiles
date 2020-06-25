@@ -1,6 +1,4 @@
-#!bin/bash
-
-TARGETS=(.vim .vimrc .zshrc .bash_profile .latexmkrc private)
+TARGETS=(.vimrc .vim .zshrc .latexmkrc)
 
 for tgt in ${TARGETS[@]}
 do

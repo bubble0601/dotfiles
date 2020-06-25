@@ -6,10 +6,10 @@ if &compatible
 endif
 
 " Required:
-set runtimepath+=/Users/bubble/.vim/bundle/neobundle.vim
+set runtimepath+=~/dotfiles/.vim/bundle/neobundle.vim
 
 " Required:
-call neobundle#begin(expand('/Users/bubble/.vim/bundle'))
+call neobundle#begin(expand('~/dotfiles/.vim/bundle'))
 
 " Let NeoBundle manage NeoBundle
 " Required:
@@ -27,7 +27,7 @@ NeoBundle 'Shougo/neomru.vim'
 NeoBundle 'scrooloose/nerdtree'
 
 " Git
-NeoBundle 'tpope/vim-fugitive'
+" NeoBundle 'tpope/vim-fugitive'
 
 " コメント(Ctrl + -)
 NeoBundle 'tomtom/tcomment_vim'

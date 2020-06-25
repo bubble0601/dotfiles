@@ -152,4 +152,9 @@ bindkey "^N" history-beginning-search-forward-end
 
 ###########################################################################
 
-source ~/private/.zsh.private
+load_if_exists () {
+    if [ -f $1 ]; then
+        source $1
+    fi
+}
+load_if_exists "$HOME/.zshrc_local"
