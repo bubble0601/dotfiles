@@ -1,78 +1,76 @@
-" NeoBundle用の設定
-
-"NeoBundle Scripts-----------------------------
-if &compatible
-  set nocompatible
-endif
-
-" Required:
-set runtimepath+=~/dotfiles/.vim/bundle/neobundle.vim
-
-" Required:
-call neobundle#begin(expand('~/dotfiles/.vim/bundle'))
-
-" Let NeoBundle manage NeoBundle
-" Required:
-NeoBundleFetch 'Shougo/neobundle.vim'
-
 "===========================================================================
 " プラグイン
 "===========================================================================
 
-" ファイルオープン
-NeoBundle 'Shougo/unite.vim'
-" unite.vimで最近使ったファイル
-NeoBundle 'Shougo/neomru.vim'
-" ツリー表示
-NeoBundle 'scrooloose/nerdtree'
+" Dein.vimの設定
+"dein Scripts-----------------------------
 
-" Git
-" NeoBundle 'tpope/vim-fugitive'
-
-" コメント(Ctrl + -)
-NeoBundle 'tomtom/tcomment_vim'
-" 囲む
-NeoBundle 'tpope/vim-surround'
-
-" インデント可視化
-NeoBundle 'nathanaelkane/vim-indent-guides'
-" NeoBundle 'Yggdroot/indentLine' " https://qiita.com/Layzie/items/a1c8d14bccb14c02eb1b
-
-" ステータスラインの表示内容強化
-NeoBundle 'itchyny/lightline.vim'
-
-" 自動補完など
-if has('lua') " lua機能が有効になっている場合
-    " コードの自動補完
-    NeoBundle 'Shougo/neocomplete.vim'
-    " スニペットの補完機能
-    NeoBundle "Shougo/neosnippet"
-    " スニペット集
-    NeoBundle 'Shougo/neosnippet-snippets'
+let $CACHE = expand('~/.cache')
+if !($CACHE->isdirectory())
+  call mkdir($CACHE, 'p')
+endif
+if &runtimepath !~# '/dein.vim'
+  let s:dir = 'dein.vim'->fnamemodify(':p')
+  if !(s:dir->isdirectory())
+    let s:dir = $CACHE .. '/dein/repos/github.com/Shougo/dein.vim'
+    if !(s:dir->isdirectory())
+      execute '!git clone https://github.com/Shougo/dein.vim' s:dir
+    endif
+  endif
+  execute 'set runtimepath^='
+        \ .. s:dir->fnamemodify(':p')->substitute('[/\\]$', '', '')
 endif
 
-" 構文エラーチェック
-" NeoBundle 'scrooloose/syntastic'
+" Ward off unexpected things that your distro might have made, as
+" well as sanely reset options when re-sourcing .vimrc
+set nocompatible
 
-" for LaTeX
-let g:vimtex_compiler_latexmk = {'callback' : 0}
-NeoBundle 'lervag/vimtex'
+" Set dein base path (required)
+let s:dein_base = '~/.cache/dein/'
 
-" for pug
-NeoBundle 'digitaltoad/vim-pug'
+" Set dein source path (required)
+let s:dein_src = '~/.cache/dein/repos/github.com/Shougo/dein.vim'
 
-" vimから実行
-NeoBundle 'thinca/vim-quickrun'
+" Set dein runtime path (required)
+execute 'set runtimepath+=' .. s:dein_src
 
-"===========================================================================
+" Call dein initialization (required)
+call dein#begin(s:dein_base)
 
-" Required:
-call neobundle#end()
+call dein#add(s:dein_src)
 
-" Required:
-filetype plugin indent on
+" ファイルオープン
+call dein#add('Shougo/unite.vim')
+" unite.vimで最近使ったファイル
+call dein#add('Shougo/neomru.vim')
+" ツリー表示
+call dein#add('preservim/nerdtree')
+" コメント
+call dein#add('tpope/vim-commentary')
+" 囲む
+call dein#add('tpope/vim-surround')
+" インデント自動検出
+call dein#add('tpope/vim-sleuth')
+" 文字幅が曖昧な文字を調整
+call dein#add('rbtnn/vim-ambiwidth')
 
-" If there are uninstalled bundles found on startup,
-" this will conveniently prompt you to install them.
-NeoBundleCheck
-"End NeoBundle Scripts-------------------------
+" ステータスラインの表示内容強化
+call dein#add('itchyny/lightline.vim')
+
+" autocomplete
+call dein#add('vim-scripts/AutoComplPop')
+
+" Finish dein initialization (required)
+call dein#end()
+
+" Attempt to determine the type of a file based on its name and possibly its
+" contents. Use this to allow intelligent auto-indenting for each filetype,
+" and for plugins that are filetype specific.
+filetype indent plugin on
+
+" If you want to install not installed plugins on startup.
+if dein#check_install()
+  call dein#install()
+endif
+
+"End dein Scripts-------------------------

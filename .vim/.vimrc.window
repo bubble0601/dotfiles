@@ -38,19 +38,13 @@ nnoremap saq :<C-u>tabdo quit<CR>
 nnoremap s= <C-w>=
 nnoremap so <C-w>_<C-w>|
 nnoremap sO <C-w>=
-"call submode#enter_with('bufmove', 'n', '', 's>', '<C-w>>')
-"call submode#enter_with('bufmove', 'n', '', 's<', '<C-w><')
-"call submode#enter_with('bufmove', 'n', '', 's+', '<C-w>+')
-"call submode#enter_with('bufmove', 'n', '', 's-', '<C-w>-')
-"call submode#map('bufmove', 'n', '', '>', '<C-w>>')
-"call submode#map('bufmove', 'n', '', '<', '<C-w><')
-"call submode#map('bufmove', 'n', '', '+', '<C-w>+')
-"call submode#map('bufmove', 'n', '', '-', '<C-w>-')
-
 
 " バッファ移動
 nnoremap sN :<C-u>bn<CR>
 nnoremap sP :<C-u>bp<CR>
+nnoremap <silent> <F2> :bp<CR>
+nnoremap <silent> <F3> :bn<CR>
+nnoremap bb :ls<CR>:buf
 
 " ウィンドウ分割
 nnoremap ss :<C-u>sp<CR>

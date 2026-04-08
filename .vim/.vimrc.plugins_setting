@@ -4,192 +4,131 @@
 " 入力モードで開始する
 let g:unite_enable_start_insert=1
 " バッファ一覧
-noremap <C-P> :Unite buffer<CR>
+noremap <Space>ub :Unite buffer<CR>
 " ファイル一覧
-noremap <C-N> :Unite -buffer-name=file file<CR>
-" 最近使ったファイルの一覧
-noremap <C-Z> :Unite file_mru<CR>
-" sourcesを「今開いているファイルのディレクトリ」とする
-"noremap :uff :<C-u>UniteWithBufferDir file -buffer-name=file<CR>
-" ウィンドウを分割して開く
-au FileType unite nnoremap <silent> <buffer> <expr> <C-J> unite#do_action('split')
-au FileType unite inoremap <silent> <buffer> <expr> <C-J> unite#do_action('split')
-" ウィンドウを縦に分割して開く
-au FileType unite nnoremap <silent> <buffer> <expr> <C-K> unite#do_action('vsplit')
-au FileType unite inoremap <silent> <buffer> <expr> <C-K> unite#do_action('vsplit')
-" ESCキーを2回押すと終了する
-au FileType unite nnoremap <silent> <buffer> <ESC><ESC> :q<CR>
-au FileType unite inoremap <silent> <buffer> <ESC><ESC> <ESC>:q<CR>
+noremap <Space>uf :Unite -buffer-name=file file<CR>
+" 最近使ったファイルとバッファ
+noremap <Space>uu :Unite file_mru buffer<CR>
+" チートシート (モード別: normal / insert / visual)
+nnoremap <Space>uc :Unite cheatsheet:normal<CR>
+vnoremap <Space>uc :Unite cheatsheet:visual<CR>
+inoremap <C-Space>c <ESC>:Unite cheatsheet:insert<CR>
+vnoremap <C-Space>c <ESC>:Unite cheatsheet:visual<CR>
+
+" Insert mode から <C-Space> をリーダーとして Unite を開く
+inoremap <C-Space>b <ESC>:Unite buffer<CR>
+inoremap <C-Space>f <ESC>:Unite -buffer-name=file file<CR>
+inoremap <C-Space>u <ESC>:Unite file_mru buffer<CR>
+
+" チートシート Unite ソース
+" * はビルトインのキーバインドを示す
+let s:cheatsheet_source = {
+    \ 'name': 'cheatsheet',
+    \ 'description': 'show keybindings cheatsheet',
+    \ 'syntax': 'uniteSource__Cheatsheet',
+    \ 'hooks': {},
+    \ }
+
+function! s:cheatsheet_source.hooks.on_syntax(args, context) abort
+    syntax match uniteCheatsheetCategory /\[.*\]/ contained containedin=uniteSource__Cheatsheet
+    syntax match uniteCheatsheetBuiltin /\*$/ contained containedin=uniteSource__Cheatsheet
+    highlight uniteCheatsheetCategory ctermfg=Yellow guifg=#FFD700
+    highlight uniteCheatsheetBuiltin  ctermfg=Cyan   guifg=#88DDFF
+endfunction
+
+" モード別項目定義
+" キー: 表示するモードのリスト ('normal', 'insert', 'visual')
+let s:cheatsheet_items = [
+    \ {'m': ['normal'],          'l': '[移動]   H / L                行頭 / 行末へ'},
+    \ {'m': ['normal'],          'l': '[移動]   J / K                次 / 前の空行へ'},
+    \ {'m': ['normal'],          'l': '[移動]   ( / )                対応する括弧へ'},
+    \ {'m': ['normal'],          'l': '[移動]   <CR> / <BS>          ファイル末尾 / 先頭へ'},
+    \ {'m': ['normal'],          'l': '[移動]   <Space>j / k         ページ送り / 戻し'},
+    \ {'m': ['normal'],          'l': '[移動]   w / b / e            単語単位で次 / 前 / 末尾へ *'},
+    \ {'m': ['normal'],          'l': '[移動]   f{c} / F{c}          行内の文字へジャンプ *'},
+    \ {'m': ['normal'],          'l': '[移動]   zz / zt / zb         カーソル行を中央 / 上 / 下に *'},
+    \ {'m': ['normal'],          'l': '[編集]   <Space>w / q / Q     保存 / 閉じる / 強制閉じる'},
+    \ {'m': ['normal'],          'l': '[編集]   <Space>o / O         下 / 上に空行を挿入'},
+    \ {'m': ['normal'],          'l': '[編集]   Y / y9 / y0          行末 / 行末 / 行頭までヤンク'},
+    \ {'m': ['normal'],          'l': '[編集]   <C-d>                カーソルから行頭まで削除'},
+    \ {'m': ['normal'],          'l': '[編集]   <C-O>                ファイル末尾に新行を追加'},
+    \ {'m': ['normal'],          'l': '[編集]   d<CR> / d<BS>        末尾 / 先頭まで削除'},
+    \ {'m': ['normal'],          'l': '[編集]   ==                   ファイル全体を整形'},
+    \ {'m': ['normal'],          'l': '[編集]   .                    直前の操作を繰り返す *'},
+    \ {'m': ['normal'],          'l': '[編集]   u / <C-r>            undo / redo *'},
+    \ {'m': ['normal'],          'l': '[編集]   >> / <<              インデント追加 / 削除 *'},
+    \ {'m': ['normal'],          'l': '[編集]   ci{c}/di{c}/yi{c}    テキストオブジェクト操作 *'},
+    \ {'m': ['normal'],          'l': '[編集]   ~                    大文字 / 小文字切り替え *'},
+    \ {'m': ['normal'],          'l': '[検索]   <ESC><ESC>           ハイライト消去'},
+    \ {'m': ['normal'],          'l': '[検索]   gs                   置換 (全体)'},
+    \ {'m': ['normal'],          'l': '[検索]   n / N                次 / 前の検索結果へ *'},
+    \ {'m': ['normal'],          'l': '[検索]   * / #                カーソル下の単語を前 / 後方検索 *'},
+    \ {'m': ['normal'],          'l': '[Window] ss / sv              水平 / 垂直分割'},
+    \ {'m': ['normal'],          'l': '[Window] sj/k/h/l             ウィンドウ移動'},
+    \ {'m': ['normal'],          'l': '[Window] sJ/K/H/L             ウィンドウ自体を移動'},
+    \ {'m': ['normal'],          'l': '[Window] sw / sr              次のウィンドウ / ウィンドウを回転'},
+    \ {'m': ['normal'],          'l': '[Window] s= / so              均等化 / 最大化'},
+    \ {'m': ['normal'],          'l': '[Window] sq / sQ              ウィンドウ / バッファを閉じる'},
+    \ {'m': ['normal'],          'l': '[Window] <C-h/j/k/l>          ウィンドウ移動'},
+    \ {'m': ['normal'],          'l': '[Tab]    st / sn / sp / saq   新規 / 次 / 前 / 全閉じ'},
+    \ {'m': ['normal'],          'l': '[Buffer] sN / sP / F2 / F3    次 / 前のバッファへ'},
+    \ {'m': ['normal'],          'l': '[Buffer] bb                   バッファ一覧'},
+    \ {'m': ['insert'],          'l': '[移動]   <S-Right/Left>       行末 / 行頭へ'},
+    \ {'m': ['insert'],          'l': '[編集]   <C-j>                ノーマルモードへ'},
+    \ {'m': ['insert'],          'l': '[編集]   <C-p>                クリップボードから貼り付け'},
+    \ {'m': ['insert'],          'l': '[編集]   <C-k>                カーソルから行頭まで削除'},
+    \ {'m': ['insert'],          'l': '[編集]   <C-d>                カーソルから行末まで削除'},
+    \ {'m': ['insert'],          'l': "[編集]   {,[,(,\",\'           括弧の自動補完"},
+    \ {'m': ['insert'],          'l': '[編集]   {<CR>                括弧補完 + 改行'},
+    \ {'m': ['insert'],          'l': '[補完]   <C-n> / <C-p>        補完候補を次 / 前へ *'},
+    \ {'m': ['insert'],          'l': '[補完]   <C-x><C-f>           ファイル名補完 *'},
+    \ {'m': ['insert'],          'l': '[補完]   <C-x><C-o>           オムニ補完 *'},
+    \ {'m': ['visual'],          'l': '[選択]   v / V / <C-v>         文字 / 行 / 矩形選択 *'},
+    \ {'m': ['visual'],          'l': '[選択]   aw / iw              単語を選択 (外側 / 内側) *'},
+    \ {'m': ['visual'],          'l': '[選択]   ab / ib              括弧内を選択 (外側 / 内側) *'},
+    \ {'m': ['visual'],          'l': '[選択]   v                    行末まで選択'},
+    \ {'m': ['visual'],          'l': '[移動]   <S-Right/Left>       行末 / 行頭へ'},
+    \ {'m': ['visual'],          'l': '[編集]   d / y / c            削除 / ヤンク / 変更 *'},
+    \ {'m': ['visual'],          'l': '[編集]   > / <                インデント追加 / 削除 *'},
+    \ {'m': ['visual'],          'l': '[編集]   u / U                小文字 / 大文字に変換 *'},
+    \ {'m': ['visual'],          'l': "[編集]   {,[,(,\",\'           選択範囲を括弧で囲む"},
+    \ {'m': ['visual'],          'l': '[検索]   //                   選択文字列を検索'},
+    \ {'m': ['visual'],          'l': '[検索]   /r                   選択文字列を置換'},
+    \ {'m': ['visual'],          'l': '[検索]   gs                   置換 (選択範囲)'},
+    \ ]
+
+function! s:cheatsheet_source.gather_candidates(args, context)
+    let mode = get(a:args, 0, 'normal')
+    let filtered = filter(copy(s:cheatsheet_items), 'index(v:val.m, mode) >= 0')
+    return map(filtered, '{"word": v:val.l, "abbr": v:val.l}')
+endfunction
+
+call unite#define_source(s:cheatsheet_source)
 
 "===========================================================================
-" fugitive(Git)
+" lightline
 "===========================================================================
-" ステータス行に現在のgitブランチを表示する
-" set statusline+=%{fugitive#statusline()}
+let g:lightline = {
+  \ 'active': {
+  \   'right': [['lineinfo'], ['fileformat', 'fileencoding', 'filetype'], ['indent']]
+  \ },
+  \ 'component_function': {
+  \   'indent': 'LightlineIndent'
+  \ }
+  \ }
 
-"===========================================================================
-" vim-indent-guides
-"===========================================================================
-" vimを立ち上げたときに、自動的にvim-indent-guidesをオンにする
-let g:indent_guides_enable_on_vim_startup = 1
-
-"===========================================================================
-" neocomplete, neosnippet
-"===========================================================================
-if neobundle#is_installed('neocomplete.vim')
-    " Vim起動時にneocompleteを有効にする
-    let g:neocomplete#enable_at_startup = 1
-    " smartcase有効化. 大文字が入力されるまで大文字小文字の区別を無視する
-    let g:neocomplete#enable_smart_case = 1
-    " 3文字以上の単語に対して補完を有効にする
-    let g:neocomplete#min_keyword_length = 3
-    " 区切り文字まで補完する
-    let g:neocomplete#enable_auto_delimiter = 1
-    " 1文字目の入力から補完のポップアップを表示
-    let g:neocomplete#auto_completion_start_length = 1
-    " バックスペースで補完のポップアップを閉じる
-    inoremap <expr><BS> neocomplete#smart_close_popup()."<C-h>"
-
-    " エンターキーで補完候補の確定. スニペットの展開もエンターキーで確定
-    imap <expr><CR> neosnippet#expandable() ? "<Plug>(neosnippet_expand_or_jump)" : pumvisible() ? "<C-y>" : "<CR>"
-    " タブキーで補完候補の選択. スニペット内のジャンプもタブキーでジャンプ
-    imap <expr><TAB> pumvisible() ? "<C-n>" : neosnippet#jumpable() ? "<Plug>(neosnippet_expand_or_jump)" : "<TAB>"
-endif
+function! LightlineIndent()
+  return (&expandtab ? 'spaces' : 'tabs') . ':' . &tabstop
+endfunction
 
 "===========================================================================
-" Syntastic
+" AutoComplPop
 "===========================================================================
-" " 構文エラー行に「>>」を表示
-" let g:syntastic_enable_signs = 1
-" " 他のVimプラグインと競合するのを防ぐ
-" let g:syntastic_always_populate_loc_list = 1
-" " 構文エラーリストを非表示
-" let g:syntastic_auto_loc_list = 0
-" " ファイルを開いた時に構文エラーチェックを実行する
-" let g:syntastic_check_on_open = 1
-" " 「:wq」で終了する時も構文エラーチェックする
-" let g:syntastic_check_on_wq = 1
-"
-" " Javascript用. 構文エラーチェックにESLintを使用
-" let g:syntastic_javascript_checkers=['eslint']
-" " Javascript以外は構文エラーチェックをしない
-" let g:syntastic_mode_map = { 'mode': 'passive', 'active_filetypes': ['javascript'], 'passive_filetypes': [] }
-
-"===========================================================================
-" vim-indent-guides
-"===========================================================================
-" 自動起動
-let g:indent_guides_enable_on_vim_startup = 1
-" 1階層では表示しない
-let g:indent_guides_start_level = 2
-" ガイドは1行表示
-let g:indent_guides_guide_size = 1
-" 無効にするファイルタイプ
-let g:indent_guides_exclude_filetypes = ['help', 'nerdtree', 'tagbar', 'unite']
-" 色
-let g:indent_guides_auto_colors = 0
-"autocmd VimEnter,Colorscheme * :hi IndentGuidesOdd  guibg=black ctermbg=black " 非表示
-autocmd VimEnter,Colorscheme * :hi IndentGuidesEven guibg=darkgray  ctermbg=darkgray
-
-"===========================================================================
-" vimtex
-"===========================================================================
-let g:quickrun_config = {}
-" LaTeX Quickrun
-let g:quickrun_config.tex = {
-\ 'command' : 'latexmk',
-\ 'outputter' : 'error',
-\ 'outputter/error/success' : 'null',
-\ 'outputter/error/error' : 'quickfix',
-\ 'srcfile' : expand("%"),
-\ 'cmdopt': '-pdfdvi',
-\ 'hook/sweep/files' : [
-\                      '%S:p:r.aux',
-\                      '%S:p:r.bbl',
-\                      '%S:p:r.blg',
-\                      '%S:p:r.dvi',
-\                      '%S:p:r.fdb_latexmk',
-\                      '%S:p:r.fls',
-\                      '%S:p:r.log',
-\                      '%S:p:r.out'
-\                      ],
-\ 'exec': '%c %o %a %s',
-\}
-
-" 部分的に選択してコンパイル
-" http://auewe.hatenablog.com/entry/2013/12/25/033416 を参考に
-let g:quickrun_config.tmptex = {
-\   'exec': [
-\           'mv %s %a/tmptex.latex',
-\           'latexmk -pdfdvi -pv -output-directory=%a %a/tmptex.latex',
-\           ],
-\   'args' : expand("%:p:h:gs?\\\\?/?"),
-\   'outputter' : 'error',
-\   'outputter/error/error' : 'quickfix',
-\
-\   'hook/eval/enable' : 1,
-\   'hook/eval/cd' : "%s:r",
-\
-\   'hook/eval/template' : '\documentclass{jsarticle}'
-\                         .'\usepackage[dvipdfmx]{graphicx, hyperref}'
-\                         .'\usepackage{float}'
-\                         .'\usepackage{amsmath,amssymb,amsthm,ascmac,mathrsfs}'
-\                         .'\allowdisplaybreaks[1]'
-\                         .'\theoremstyle{definition}'
-\                         .'\newtheorem{theorem}{定理}'
-\                         .'\newtheorem*{theorem*}{定理}'
-\                         .'\newtheorem{definition}[theorem]{定義}'
-\                         .'\newtheorem*{definition*}{定義}'
-\                         .'\renewcommand\vector[1]{\mbox{\boldmath{\$#1\$}}}'
-\                         .'\begin{document}'
-\                         .'%s'
-\                         .'\end{document}',
-\
-\   'hook/sweep/files' : [
-\                        '%a/tmptex.latex',
-\                        '%a/tmptex.out',
-\                        '%a/tmptex.fdb_latexmk',
-\                        '%a/tmptex.log',
-\                        '%a/tmptex.aux',
-\                        '%a/tmptex.dvi'
-\                        ],
-\}
-
-vnoremap <silent><buffer> <F5> :QuickRun -mode v -type tmptex<CR>
-
-" QuickRun and view compile result quickly (but don't preview pdf file)
-nnoremap <silent><F5> :QuickRun<CR>
-
-" texのconcealを無効化
-let g:tex_conceal=''
-
-autocmd BufWritePost,FileWritePost *.tex QuickRun tex
-
-"===========================================================================
-" neosnippet
-"===========================================================================
-
-let g:neosnippet#snippets_directory='~/.vim/bundle/neosnippet-snippets/snippets/'
-
-" Plugin key-mappings.
-" Note: It must be "imap" and "smap".  It uses <Plug> mappings.
-imap <C-k>     <Plug>(neosnippet_expand_or_jump)
-smap <C-k>     <Plug>(neosnippet_expand_or_jump)
-xmap <C-k>     <Plug>(neosnippet_expand_target)
-
-" SuperTab like snippets behavior.
-" Note: It must be "imap" and "smap".  It uses <Plug> mappings.
-imap <C-k>     <Plug>(neosnippet_expand_or_jump)
-"imap <expr><TAB>
-" \ pumvisible() ? "\<C-n>" :
-" \ neosnippet#expandable_or_jumpable() ?
-" \    "\<Plug>(neosnippet_expand_or_jump)" : "\<TAB>"
-smap <expr><TAB> neosnippet#expandable_or_jumpable() ?
-\ "\<Plug>(neosnippet_expand_or_jump)" : "\<TAB>"
-
-" For conceal markers.
-if has('conceal')
-  set conceallevel=2 concealcursor=niv
-endif
-
-"===========================================================================
+" 補完候補があるときはtabキーや矢印キーで候補移動
+inoremap <expr> <Tab> pumvisible() ? "\<C-n>" : "\<Tab>"
+inoremap <expr> <S-Tab> pumvisible() ? "\<C-p>" : "\<S-Tab>"
+inoremap <expr> <Down> pumvisible() ? "\<C-n>" : "\<Down>"
+inoremap <expr> <Up>   pumvisible() ? "\<C-p>" : "\<Up>"
+highlight Pmenu ctermbg=4
+highlight PmenuSel ctermbg=1
+highlight PMenuSbar ctermbg=4

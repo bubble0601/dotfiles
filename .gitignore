@@ -1,3 +1,2 @@
-/.vim/bundle/*
-!/.vim/bundle/neobundle.vim
-!/.vim/bundle/NeoBundle.lock
+/.vim/undo/*
+/.vim/vimsession

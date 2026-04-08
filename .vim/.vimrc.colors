@@ -2,13 +2,11 @@
 " カラー関連 Colors
 "---------------------------------------------------------------------------
 
+set termguicolors
 colorscheme molokai
 
 " ハイライト
-syntax enable
+syntax on
 
 "コメントの色変更
 highlight Comment ctermfg=DarkCyan
-
-"ステータスラインの色
-highlight StatusLine term=bold cterm=bold ctermfg=black ctermbg=white

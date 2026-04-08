@@ -3,20 +3,18 @@ set encoding=utf-8
 scriptencoding utf-8
 
 ".vim/bundleで管理してるpluginを読み込む
-source ~/.vim/.vimrc.bundle
+if !has('nvim')
+  source ~/.vim/.vimrc.bundle
+endif
 
 "基本設定
 source ~/.vim/.vimrc.basic
-"StatusLine設定
-source ~/.vim/.vimrc.statusline
 "インデント設定
 source ~/.vim/.vimrc.indent
 "表示関連
 source ~/.vim/.vimrc.appearance
 "補完関連
 source ~/.vim/.vimrc.completion
-"Tags関連
-"source ~/.vim/.vimrc.tags
 "検索関連
 source ~/.vim/.vimrc.search
 "移動関連
@@ -31,7 +29,9 @@ source ~/.vim/.vimrc.editing
 source ~/.vim/.vimrc.misc
 
 "プラグインに依存するアレ
-source ~/.vim/.vimrc.plugins_setting
+if !has('nvim')
+  source ~/.vim/.vimrc.plugins_setting
+endif
 
 "言語別の設定
 source ~/.vim/.vimrc.lang
