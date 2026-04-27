@@ -5,3 +5,5 @@ source ~/.zsh/history.zsh
 source ~/.zsh/prompt.zsh
 source ~/.zsh/options.zsh
 source ~/.zsh/path.zsh
+source ~/.zsh/plugins.zsh
+source ~/.zsh/abbreviations.zsh
