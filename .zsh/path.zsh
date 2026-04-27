@@ -1,3 +1,6 @@
+# PATH の重複エントリを自動排除
+typeset -U path PATH
+
 export PATH="$HOME/.anyenv/bin:$PATH"
 eval "$(anyenv init -)"
 

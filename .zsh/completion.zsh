@@ -1,6 +1,12 @@
 autoload -Uz compinit
 compinit
 
+# Tab で候補メニュー表示、ハイライトで選択可能
+zstyle ':completion:*' menu select
+
+# 補完候補に LS_COLORS の色付け
+zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
+
 # 小文字でも大文字にマッチさせる
 zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'
 

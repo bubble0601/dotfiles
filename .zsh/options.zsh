@@ -33,8 +33,11 @@ setopt hist_reduce_blanks
 # 高機能なワイルドカード展開を使用する
 setopt extended_glob
 
-# コマンドもしかして
-setopt correct
+# --prefix=~/foo の = の右辺もチルダ展開
+setopt magic_equal_subst
+
+# file1, file2, ..., file10 を数字順にソート
+setopt numeric_glob_sort
 
 # 候補を詰めて表示
 setopt list_packed
