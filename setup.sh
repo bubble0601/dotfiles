@@ -15,6 +15,9 @@ if [ ! -e $HOME/.zshrc ]; then
     echo "created $HOME/.zshrc (sources ~/dotfiles/.zshrc)"
 fi
 
+# zsh プラグインを install / update (idempotent)
+zsh $HOME/dotfiles/.zsh/update-plugins.sh
+
 # .config 以下のディレクトリは親を作成してからリンク
 CONFIG_TARGETS=(.config/wezterm .config/nvim)
 
