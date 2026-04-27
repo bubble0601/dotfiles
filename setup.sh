@@ -1,4 +1,4 @@
-TARGETS=(.vimrc .vim .zsh .latexmkrc)
+TARGETS=(.vimrc .vim .latexmkrc)
 
 # vim undo ディレクトリを作成
 mkdir -p $HOME/.vim/undo

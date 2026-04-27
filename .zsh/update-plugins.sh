@@ -1,6 +1,6 @@
 #!/usr/bin/env zsh
 # zsh プラグインを一括 install / update する
-# 使い方: zsh ~/.zsh/update-plugins.sh
+# 使い方: zsh ~/dotfiles/.zsh/update-plugins.sh
 
 set -e
 
