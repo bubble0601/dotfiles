@@ -5,13 +5,7 @@ alias lal='ls -al'
 alias lla='ls -al'
 alias lf='ls -F'
 
-alias rmi='rm -i'
-alias cpi='cp -i'
-alias mvi='mv -i'
-
-alias mkdir='mkdir -p'
-
-alias vi="vim"
+alias vi="nvim"
 alias nv="nvim"
 
 # sudo の後のコマンドでエイリアスを有効にする
@@ -23,12 +17,15 @@ alias -g G='| grep'
 
 alias where='command -v'
 
-alias vzrc="vim ~/.zshrc"
 alias szrc="source ~/.zshrc"
-alias gca="git commit -a -m"
+alias gs="git status"
 alias psg="ps aux | grep"
 
-function gpr() {
+alias pn="pnpm"
+alias dc="docker compose"
+alias nr="npm run"
+
+gpr() {
     grep "$1" -rn ./*
 }
 
