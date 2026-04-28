@@ -4,6 +4,8 @@
 
 - [Neovim](https://neovim.io/)
 - [lazygit](https://github.com/jesseduffield/lazygit)
+- [fzf](https://github.com/junegunn/fzf)
+- [zoxide](https://github.com/ajeetdsouza/zoxide)
 
 ## セットアップ
 
