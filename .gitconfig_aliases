@@ -1,0 +1,40 @@
+[alias]
+	fpush = push --force-with-lease
+	st = status
+	c = commit
+	sw = switch
+	lo = log --oneline
+	lg = log --graph --oneline --decorate --all
+	al = config --get-regexp ^alias\\.
+	cm = commit -m
+	br = branch
+	ca = commit --amend --no-edit
+	fix = commit --fixup
+	swc = switch -c
+	rb = rebase
+	rbi = rebase -i
+	rbas = rebase -i --autosquash
+	rbc = rebase --continue
+	rba = rebase --abort
+	cp = cherry-pick
+	cpa = cherry-pick --abort
+	cpc = cherry-pick --continue
+	cpm = cherry-pick -m 1
+	mc = merge --continue
+	ma = merge --abort
+	po = pull origin
+	f = fetch
+	# fo <branch>...   : 通常の fetch origin
+	# fo <branch>:     : branch:branch 形式でローカル同名ブランチを直接更新
+	#   例: git fo main:     → git fetch origin main:main
+	#       git fo a b:      → git fetch origin a b:b
+	fo = "!f() { [ -z \"$1\" ] && { echo \"branch required\"; return 1; }; refs=\"\"; for b in \"$@\"; do case \"$b\" in *:) n=${b%:}; refs=\"$refs $n:$n\" ;; *) refs=\"$refs $b\" ;; esac; done; git fetch origin $refs; }; f"
+	fp = fetch --prune
+	rs = restore
+	rss = restore --staged
+	rsp = restore -p
+	co = checkout
+	rst = reset
+	rsts = reset --soft
+	rsth = reset --hard
+	undo = reset --soft HEAD~1
