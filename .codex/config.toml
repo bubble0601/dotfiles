@@ -1,0 +1,39 @@
+personality = "pragmatic"
+# suppress_unstable_features_warning = true
+
+notify = ["bash", "/Users/awaka/.agents/notify.sh"]
+model = "gpt-5.5"
+model_reasoning_effort = "medium"
+
+[features]
+multi_agent = true
+
+[projects."/Users/awaka/medicalforce/keibi-force"]
+trust_level = "trusted"
+
+[projects."/Users/awaka/.claude"]
+trust_level = "untrusted"
+
+[projects."/Users/awaka/kb/keibi-force"]
+trust_level = "trusted"
+
+# --- explorer: コードを読むだけの調査エージェント ---
+[agents.explorer]
+description = "Codebase research agent. Use for all code investigation, no edits."
+config_file = "/Users/awaka/.codex/agents/explorer.toml"
+
+# --- worker: コードを編集できる修正エージェント ---
+[agents.worker]
+description = "Coding and bug fix agent. Use for implementation, refactoring, and running tests."
+config_file = "/Users/awaka/.codex/agents/worker.toml"
+
+# --- fast_worker: 軽量タスク向けの高速エージェント（オプション） ---
+[agents.fast_worker]
+description = "Fast scoped implementation agent."
+config_file = "/Users/awaka/.codex/agents/fast_worker.toml"
+
+[tui]
+status_line = ["model-with-reasoning", "current-dir", "project-root", "git-branch", "context-used", "five-hour-limit", "weekly-limit"]
+
+[tui.model_availability_nux]
+"gpt-5.5" = 2

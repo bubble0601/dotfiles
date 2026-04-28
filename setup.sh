@@ -43,6 +43,15 @@ if [ ! -e $HOME/.claude/CLAUDE.md ]; then
     echo "created $HOME/.claude/CLAUDE.md (includes ~/dotfiles/.claude/CLAUDE.md)"
 fi
 
+# ~/.codex 以下も同様に個別 symlink (auth.json, history, sessions 等のランタイム生成物は除外)
+CODEX_TARGETS=(.codex/config.toml .codex/AGENTS.md .codex/agents .codex/rules)
+
+mkdir -p $HOME/.codex
+for tgt in ${CODEX_TARGETS[@]}
+do
+    ln -fnsv $HOME/dotfiles/$tgt $HOME/$tgt
+done
+
 # ~/.gitconfig に dotfiles の alias 定義を include (未設定時のみ)
 if ! git config --global --get-all include.path 2>/dev/null | grep -q 'dotfiles/\.gitconfig_aliases'; then
     git config --global --add include.path '~/dotfiles/.gitconfig_aliases'

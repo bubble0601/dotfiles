@@ -1,0 +1,2 @@
+model = "gpt-5.3-spark"           # 高速モデルを指定（コストと速度を優先）
+model_reasoning_effort = "xhigh"
