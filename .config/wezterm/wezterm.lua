@@ -46,12 +46,12 @@ config.keys = {
   { key = "q", mods = "LEADER", action = wezterm.action.ActivateKeyTable({ name = "pane_mode", one_shot = false }) },
   -- タブ操作
   { key = "t",          mods = "SUPER", action = wezterm.action.SpawnCommandInNewTab({ cwd = wezterm.home_dir }) },
-  { key = "LeftArrow",  mods = "CTRL|SHIFT",  action = wezterm.action.ActivateTabRelative(-1) },
-  { key = "RightArrow", mods = "CTRL|SHIFT",  action = wezterm.action.ActivateTabRelative(1) },
   { key = "LeftArrow",  mods = "SUPER|SHIFT", action = wezterm.action.MoveTabRelative(-1) },
   { key = "RightArrow", mods = "SUPER|SHIFT", action = wezterm.action.MoveTabRelative(1) },
   -- コマンドパレット
   { key = "p", mods = "SUPER", action = wezterm.action.ActivateCommandPalette },
+  -- Cmd+C を Neovim に渡す（neo-tree でのパスコピー用）
+  { key = "c", mods = "SUPER", action = wezterm.action.SendKey({ key = "c", mods = "SUPER" }) },
   -- コピーモード
   { key = "[", mods = "LEADER", action = wezterm.action.ActivateCopyMode },
   -- Emacs ショートカット一覧オーバーレイ

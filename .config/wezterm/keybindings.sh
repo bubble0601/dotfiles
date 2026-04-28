@@ -39,4 +39,9 @@ key "C-l"          "画面をクリア"
 key "C-r"          "コマンド履歴を後方検索"
 gap
 
+section "タブ"
+key "Cmd+Shift+←"  "タブを左に移動"
+key "Cmd+Shift+→"  "タブを右に移動"
+gap
+
 printf "  ${Q}[q] で閉じる${R}\n\n"

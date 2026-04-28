@@ -1,0 +1,80 @@
+# フォント
+font-size = 14
+
+# カラースキーム (iceberg-dark)
+background = #161821
+foreground = #d2d4de
+cursor-color = #d2d4de
+selection-background = #2a3158
+selection-foreground = #d2d4de
+# 通常色
+palette = 0=#1e2132
+palette = 1=#e27878
+palette = 2=#b4be82
+palette = 3=#e2a478
+palette = 4=#84a0c6
+palette = 5=#a093c7
+palette = 6=#89b8c2
+palette = 7=#c6c8d1
+# 明るい色
+palette = 8=#6b7089
+palette = 9=#e98989
+palette = 10=#c0ca8e
+palette = 11=#e9b189
+palette = 12=#91acd1
+palette = 13=#ada0d3
+palette = 14=#95c4ce
+palette = 15=#d2d4de
+
+# ウィンドウ
+background-opacity = 0.95
+background-blur-radius = 20
+window-padding-x = 8
+window-padding-y = 8
+
+# スクロールバック
+scrollback-limit = 10000
+
+# キーバインド
+# Ctrl+a は Emacs キーバインド (行頭移動) と被るため Ctrl+q を leader として使用
+# ペイン分割
+keybind = ctrl+q>s=new_split:right
+keybind = ctrl+q>h=new_split:down
+# ペインを閉じる
+keybind = ctrl+q>x=close_surface
+# ペイン移動
+keybind = super+left=goto_split:left
+keybind = super+down=goto_split:down
+keybind = super+up=goto_split:up
+keybind = super+right=goto_split:right
+# タブ操作
+keybind = super+t=new_tab
+keybind = super+shift+left=move_tab:-1
+keybind = super+shift+right=move_tab:1
+# Cmd+C を Neovim にも渡す（neo-tree でのパスコピー用）
+keybind = unconsumed:super+c=copy_to_clipboard
+
+# pane_mode 相当 (Ghostty はモーダル Key Table 非対応のため ctrl+q>q プレフィックスで代用)
+# 分割
+keybind = ctrl+q>q>s=new_split:right
+keybind = ctrl+q>q>v=new_split:down
+# 閉じる
+keybind = ctrl+q>q>x=close_surface
+# 移動
+keybind = ctrl+q>q>left=goto_split:left
+keybind = ctrl+q>q>down=goto_split:down
+keybind = ctrl+q>q>up=goto_split:up
+keybind = ctrl+q>q>right=goto_split:right
+# サイズ変更
+keybind = ctrl+q>q>h=resize_split:left,5
+keybind = ctrl+q>q>j=resize_split:down,5
+keybind = ctrl+q>q>k=resize_split:up,5
+keybind = ctrl+q>q>l=resize_split:right,5
+
+# WezTerm から移行できなかった機能:
+# - leader 待機インジケーター (ステータスバー)
+# - コマンドパレット (super+p)
+# - コピーモード (leader+[)
+# - キーバインド一覧オーバーレイ (leader+?)
+# - カスタムタブタイトル (プロセスアイコン + ディレクトリ名)
+# - フルスクリーン時の日時・バッテリー表示
