@@ -27,6 +27,22 @@ do
     ln -fnsv $HOME/dotfiles/$tgt $HOME/$tgt
 done
 
+# ~/.claude 以下も親を作成してから個別ファイル/ディレクトリで symlink
+# (~/.claude には会話履歴等のランタイム生成物も含むため、ディレクトリ全体は symlink しない)
+CLAUDE_TARGETS=(.claude/settings.json .claude/skills .claude/statusline.sh .claude/statusline-wrapper.sh)
+
+mkdir -p $HOME/.claude
+for tgt in ${CLAUDE_TARGETS[@]}
+do
+    ln -fnsv $HOME/dotfiles/$tgt $HOME/$tgt
+done
+
+# ~/.claude/CLAUDE.md は machine-local な実ファイル (dotfiles の CLAUDE.md を @ で include)
+if [ ! -e $HOME/.claude/CLAUDE.md ]; then
+    echo '@~/dotfiles/.claude/CLAUDE.md' > $HOME/.claude/CLAUDE.md
+    echo "created $HOME/.claude/CLAUDE.md (includes ~/dotfiles/.claude/CLAUDE.md)"
+fi
+
 # ~/.gitconfig に dotfiles の alias 定義を include (未設定時のみ)
 if ! git config --global --get-all include.path 2>/dev/null | grep -q 'dotfiles/\.gitconfig_aliases'; then
     git config --global --add include.path '~/dotfiles/.gitconfig_aliases'
