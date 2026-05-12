@@ -38,3 +38,4 @@
 	rsts = reset --soft
 	rsth = reset --hard
 	undo = reset --soft HEAD~1
+	stm = stash push -m
