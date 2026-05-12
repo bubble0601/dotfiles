@@ -1,21 +1,21 @@
 ---
 name: commit-confirm
-description: stage された変更を `git commit` する直前に、必ずユーザーに commit メッセージを見せて feedback を求めるためのワークフロー。複数 commit に分割するときは各回ループで確認。誤って確認なしで commit してしまったら soft reset で巻き戻して再確認する。`git add` の後、`git commit` を実行しようとするあらゆる場面で使うこと。`/commit` slash command 経由でも、ユーザーが「コミットして」「commit お願い」「これで commit して」と言った場合でも、Claude 自身が変更を一区切りつけて commit しようと判断した場面でも、確認をスキップせず必ずこの skill のフローに従う。CLAUDE.md の「stage 後 commit 前に確認」ルールを守るための guard skill。
+description: stage された変更を `git commit` する直前に、必ずユーザーに stage 内容を見せて feedback を求めるためのワークフロー。複数 commit に分割するときは各回ループで確認。誤って確認なしで commit してしまったら soft reset で巻き戻して再確認する。`git add` の後、`git commit` を実行しようとするあらゆる場面で使うこと。`/commit` slash command 経由でも、ユーザーが「コミットして」「commit お願い」「これで commit して」と言った場合でも、Claude 自身が変更を一区切りつけて commit しようと判断した場面でも、確認をスキップせず必ずこの skill のフローに従う。CLAUDE.md の「stage 後 commit 前に確認」ルールを守るための guard skill。
 ---
 
 # commit-confirm
 
-stage された変更を commit する前に、ユーザーに commit メッセージを見せて feedback を求める。
+stage された変更を commit する前に、**stage に含まれる変更内容**をユーザーに見せて feedback を求める。
 
 ## なぜ必要か
 
-Claude が独断で commit すると、コミットメッセージが期待と違ったり意図しない変更が混入したりして、巻き戻しの手間が発生する。確認は数秒、巻き戻しは数分。
+ユーザーが commit 直前に stage 内容を一度自分の目で確認したいから。
 
 ## 基本フロー
 
-1. コミットメッセージ案を提示する(プロジェクトの慣例に従う)
+1. `git status` と `git diff --staged` を実行し、**stage されているファイル一覧と変更内容**をユーザーに提示する
 2. 「この内容で commit してよいですか?」と聞き、**ユーザーの返答を必ず待つ**。沈黙を承認とみなさない
-3. 修正指示があれば反映して再提示
+3. 変更の除外・追加の指示があれば反映して再提示
 4. OK が出たら `git commit`
 
 複数 commit に分割する場合は、各 commit ごとに上記フローを繰り返す。「以降も同じ要領で」と省略しない。
