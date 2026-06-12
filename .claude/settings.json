@@ -1,7 +1,6 @@
 {
   "env": {
     "DISABLE_MICROCOMPACT": "true",
-    "ENABLE_LSP_TOOL": "true",
     "CLAUDE_CODE_ENABLE_TASKS": "true"
   },
   "permissions": {
@@ -108,8 +107,6 @@
       "Write(/etc/passwd)",
       "Write(/etc/shadow)",
       "Write(/etc/sudoers)",
-      "Read(.env.*)",
-      "Write(.env*)",
       "Bash(psql:*)",
       "Bash(mysql:*)",
       "Bash(mongod:*)",
@@ -117,15 +114,15 @@
     ],
     "defaultMode": "auto"
   },
+  "model": "claude-fable-5[1m]",
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "ExitPlanMode",
+        "matcher": "Read|Write|Edit|MultiEdit",
         "hooks": [
           {
             "type": "command",
-            "command": "cursor -r \"$(ls -t ./_local/plans/*.md | head -1)\"",
-            "timeout": 5
+            "command": "FILE=$(jq -r '.tool_input.file_path // empty'); [ -z \"$FILE\" ] && exit 0; BASE=$(basename \"$FILE\"); case \"$BASE\" in .env|.env.*) case \"$BASE\" in *.example|*.sample) exit 0 ;; *) echo \"Access to env files is denied (only .env*.example or .env*.sample permitted)\" >&2; exit 2 ;; esac ;; *) exit 0 ;; esac"
           }
         ]
       }
