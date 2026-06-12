@@ -20,10 +20,17 @@ gpr() {
 }
 
 difit() {
-  if [[ $# -eq 0 ]]; then
-    bunx difit working
+  local difit_bin="$HOME/Documents/playground/difit/dist/cli/index.js"
+  local cmd
+  if [[ -f "$difit_bin" ]]; then
+    cmd=(node "$difit_bin")
   else
-    bunx difit "$@"
+    cmd=(bunx difit)
+  fi
+  if [[ $# -eq 0 ]]; then
+    "${cmd[@]}" staged
+  else
+    "${cmd[@]}" "$@"
   fi
 }
 
