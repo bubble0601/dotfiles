@@ -75,9 +75,9 @@ The briefing is for a human reader. Keep it concise but concrete. It has three p
 
 2. **要点 (Key points).** What changed. **必ず日本語で書く。** Group by subsystem or concept — not a file-by-file log.
 
-   まず変更の性質を見極めて書き分ける:
+   変更の性質で書き分ける:
 
-   - **仕様追加・変更が含まれる場合 (機能追加、UI 変更、業務ロジック変更、ユーザー影響のある挙動変更など)** → **仕様面の追加・変更を必ず日本語で出す**。ユーザー/業務から見て「何ができるようになったか / 何が変わったか」を主語にする。実装詳細 (クラス名・メソッド名・ファイル構成) は補助的に添える程度に留め、主役にしない。仕様面が1件でも含まれていれば、技術的リファクタが同時に入っていても仕様面を**先に**、技術面を**後に**書く。
+   - **仕様追加・変更が含まれる場合 (機能追加、UI 変更、業務ロジック変更、ユーザー影響のある挙動変更など)** → **仕様面のみを日本語で書く**。ユーザー/業務から見て「何ができるようになったか / 何が変わったか」を主語にする。実装詳細 (クラス名・メソッド名・ファイル構成・同梱されたリファクタ・依存更新・migration の中身など) は要点には含めない (それらは「見るべきポイント」側で扱う)。
      例:
      - "管理画面から複数ユーザーをまとめてアーカイブできるようになった。既存の単体アーカイブ動線は残存"
      - "予約一覧の絞り込みに『担当者未割当』条件を追加。デフォルトは OFF"
@@ -87,31 +87,37 @@ The briefing is for a human reader. Keep it concise but concrete. It has three p
      - "`User.update()` を pure domain method に変更し、副作用を UseCase 側へ移した (packages/domain/user/, apps/api/usecase/user/)"
      - "DB スキーマ変更: `user.archived_at` 追加 + backfill migration"
 
-   判断に迷ったら「仕様面あり」として扱い、日本語で仕様を書く側に倒す。
+   判断に迷ったら「仕様面あり」として扱い、仕様面のみを書く側に倒す。
 
-3. **レビューで特に見るべきポイント (Critical review angles).** 3–6 bullets. For each: *what to check* + *why it matters here specifically*. This is the most valuable part.
+3. **レビューで特に見るべきポイント (Critical review angles).** 3–6 bullets。これは **「この PR の性格を表す箇所」を示すもので、findings (具体疑義) ではない**。レビュワーが diff を読む前に「あ、この PR の本質は X と Y か」と全体像を掴むためのもの。
 
-   **焦点はコアロジックと意思決定が乗っている箇所に絞る。** 以下のような「判断が入っている / 間違うと挙動がズレる / 後から直しにくい」箇所を優先的に拾う:
+   **拾う対象** — その PR で**論点になる設計判断・特殊な実装・他と扱いが違う箇所**を抽象度高めにハイライト:
 
-   - **業務ロジックの分岐・条件判定**: if/switch/ガード節が増減している箇所。どの条件で何が起きるかを読み解く必要がある場所。
-   - **状態遷移 / ライフサイクル**: 予約・決済・アーカイブ等のステータス変更、作成→更新→削除の流れに触れている箇所。
-   - **権限・認可・tenant 境界**: 誰がどのデータを見える・触れるかの判定。見落とすと情報漏洩や越境アクセスに直結する。
-   - **データ整合性の要**: トランザクション境界、集計ロジック、金額計算、日時計算、migration の backfill 方針。
-   - **設計上の意思決定**: 新しい抽象の導入位置、責務分割の境界、破壊的な API 変更、既存フローとの共存方針。"なぜこうしたか" を問うべき箇所。
-   - **外部影響の起点**: 共有 component / 共有関数の signature 変更、公開 API のスキーマ変更など、変更元では小さくても呼び出し側に波及する箇所。
-   - **技術的に高度な部分**: 並行処理 / 競合状態 / ロック、非同期処理の順序・失敗時リトライ、複雑な型操作 (conditional types, generics, type narrowing)、独自アルゴリズム、メタプログラミング、パフォーマンスチューニングされた箇所 (キャッシュ、memoize、batch 化)、複雑な SQL (window 関数、再帰 CTE、lateral join)、正規表現など。**読み解くのに時間がかかる = レビュワーが流し読みしがちな = バグが紛れ込みやすい**箇所なので、意図と invariant を言語化して提示する。
-   - **セキュリティリスクのある箇所**: 認証・セッション・token 発行/検証、パスワード・秘密鍵・API キーの扱い、外部入力を SQL/シェル/HTML/URL/ファイルパスに埋め込む箇所 (SQLi / command injection / XSS / open redirect / path traversal)、ファイルアップロード・ダウンロード、deserialization、CSRF/CORS 設定、レート制限・ブルートフォース対策、PII やクレジットカード等の個人情報・機微情報のログ出力/レスポンス露出、権限昇格の余地 (IDOR、不十分な所有者チェック)、依存パッケージの追加 (信頼できる出所か / supply chain リスク)、秘匿情報のハードコード・環境変数からの漏洩。**発火したときのインパクトが大きく、かつ見落としやすい**ため、実害シナリオを 1 行添えて提示する。
+   - **新しい抽象 / モジュール境界の導入**: どこに切ったか、責務をどう分けたか
+   - **既存パターンと意図的に違う扱いをしている箇所**: 「なぜここだけ違うか」を読み解くべき箇所
+   - **設計上の trade-off が乗っている箇所**: パフォーマンス vs 可読性、汎用性 vs シンプルさ、防御の二段目を入れる/省く等の意識的選択
+   - **業務ルールの解釈が反映されている箇所**: 仕様の曖昧な部分をどう実装で固めたか
+   - **既存の不変条件が変わる箇所**: 状態遷移の追加、データモデルの拡張、API contract の変更、破壊的変更の方針
+   - **影響範囲が広い変更の中核 / 「本丸」**: どのモジュールが変更の重心か、波及がどこまで及ぶか
+   - **技術的に難度が高い実装が含まれる箇所**: 並行処理 / 競合状態、複雑な型操作 (conditional types, generics)、独自アルゴリズム、複雑な SQL (window 関数, 再帰 CTE, lateral join)、正規表現など — 「ここに難所がある」事実だけ抽象的に示す
+   - **セキュリティ境界に触れている箇所**: 認証・認可、外部入力の信頼境界、機微情報の流路など — 「境界に触れている」事実をハイライトし、具体的な疑義は findings 側に任せる
 
-   **拾わない (または優先度を下げる) もの**: 純粋な mechanical な移動・リネーム、型定義の整形、フォーマッタが直す範囲、linter / typechecker / CI が自動で捕まえるもの、テストコードのアサーション増減 (テスト対象の挙動を変えていない場合)。
+   **拾わない**:
+   - 具体的なバグや疑義 → findings の役割
+   - 「X を grep」「Y を確認」のような action item → findings の修正案として扱う
+   - 単純な機械的変更 / リネーム / 型整形 / フォーマット / linter が捕まえるもの
+   - file:line で書かない。**領域 / module / 設計の言葉で記述する**
+
+   書き方の型: **タイトル行で「何が起きているか / どこに意思決定があるか」を述べ、`→` の右側で「なぜここが論点か」を述べる**。action ("〜を確認") ではなく観点 ("〜が議論点" "〜の設計判断が乗っている" "〜が本丸") で締める。
 
    例:
-   - "`User.update()` の戻り値が新インスタンスになった → 既存 caller が戻り値を受け取らずに呼んでいる箇所がないか (検索: `user.update(` で grep)"
-   - "migration: backfill 対象レコードが N 万件 → ロック時間 / batch 化の必要性"
-   - "admin のみの変更に見えるが、共有 component `BulkDeleteModal` の signature が変わっている → web / mobile への影響"
-   - "認可ロジックに触れている → tenant 跨ぎが起きないか、`permission.companyIds` の WHERE 句が保たれているか"
-   - "予約ステータスの状態遷移に『仮押さえ→期限切れ』を追加 → 既存の『仮押さえ→確定』『仮押さえ→キャンセル』と排他的か、同時に起こりうるか"
+   - "User domain の `update()` を pure method 化し、副作用を UseCase 層に押し出した → 既存 domain method の副作用慣例 (`destroy()`, `archive()`) と整合しているかが議論点"
+   - "Bulk 操作を既存の単体 archive と別 UseCase で実装 → 単体と bulk で権限・監査・通知の責務をどう分担したかが設計判断。共通化しなかった理由を読み解く"
+   - "予約ステータスに `仮押さえ→期限切れ` 遷移を追加 → 既存の `仮押さえ→確定` `仮押さえ→キャンセル` と並ぶ 3 つ目の出口で、状態機械の形が変わっている"
+   - "共有 component `BulkDeleteModal` を新設 → admin だけでなく web / mobile からも参照可能な位置に置かれており、変更影響の重心はここ"
+   - "backfill migration が ~8 万件規模 → ロック戦略 (一括 / batch / online migration) の選択が乗っている本丸"
 
-Critical review angles should come from combining **change content** (特にコアロジック/意思決定箇所) + **project-specific patterns** (from the references file) + **common failure modes for this type of change** (migrations, auth, shared components, etc.). Not a generic checklist.
+Critical review angles は **change content (どこに新しい意思決定が乗っているか) + project-specific patterns + 設計の特異性** から導出する。findings の「具体疑義」と表面的に被ったら、見るべきポイント側は抽象化 (設計判断・論点・本丸の言葉) で書き、具体疑義は findings に任せる。
 
 ### Step 5 — Route to the right review guidelines
 
@@ -171,27 +177,34 @@ Formatting rules:
 - L3 (subsection): `▎**heading**` with one blank line before and after
 - Use fenced code blocks for code citations (add the language if applicable)
 
-**Bullet format (重要: 見づらさを避けるため厳守)** — 「見るべきポイント」と findings 両方に適用:
+**Bullet format (重要: 厳守)** — 「見るべきポイント」と findings 両方に適用:
 
-- **各 item は番号付き** (`1.` `2.` ...)。後から「1 番目の件」と指せるように。
-- **item 間に空行を 1 行**。詰めない。
-- **1 行目 = タイトル行**: 何が / 何を見るべきか。メタ情報があれば `[Critical 95 | 一致]` のように**左側に角括弧**で固める (右寄せは日本語等幅ずれで破綻するので不可)。
-- **2 行目 = 場所 or 理由**:
-  - findings の場合 → file:line を**独立した行**に置く (長いパスが本文を圧迫しないように)。
-  - 見るべきポイントの角度の場合 → `→` で始めて観点/理由を書く。
-- **3 行目以降 (findings のみ)**: 空行を挟まず続けて `根拠:` `修正:` を 1 行ずつ。
+構造:
+- 各 item は番号付き (`  1. ` `  2. ` ...、行頭から半角スペース 2 つ + `1. ` で 5 文字、本文は 6 文字目から開始)。後から「1 番目の件」と指せるように。
+- **各 item の 2 行目以降は半角スペース 5 つ分インデント** (1 行目の本文と縦位置が揃う形)。
+- **`根拠:` `修正:` を含む subline には絶対に番号を付けない。サブリスト (`1.` の下にさらに `1.` `2.`) は markdown のネストとして誤解釈されるので一切使わない。**
+- 1 行目 = タイトル行。メタ情報は `[Critical 95]` のように**左側に角括弧**で固める (右寄せは日本語等幅ずれで破綻するので不可)。
+- 2 行目 = 場所 or 観点:
+  - findings → file:line を**独立した行**に置く (長いパスが本文を圧迫しないように)
+  - 見るべきポイント → `→` で始めて観点/理由を書く
 
-見るべきポイントの例:
+行間 (見やすさのため厳守):
+- **1 行目 (タイトル) と 2 行目 (file:line / `→` 観点) の間: 空行なし** (連続)
+- **2 行目と `根拠:` の間: 空行 1 行** (findings のみ)
+- **`根拠:` と `修正:` の間: 空行なし** (連続)
+- **item と item の間: 空行 1 行** (詰めない)
+
+見るべきポイントの例 (このまま出力する形):
 
 ```
-  1. 認可ロジック (permission.companyIds) に触れている
-     → tenant 跨ぎが起きないか。全経路で WHERE 句に companyIds が入っているか確認
+  1. User domain の `update()` を pure method 化し、副作用を UseCase 層に押し出した
+     → 既存 domain method の副作用慣例 (`destroy()`, `archive()`) と整合しているかが議論点
 
-  2. User.update() の戻り値が新インスタンスに変更
-     → 戻り値を捨てて呼んでいる既存 caller が残っていないか (grep: `user.update(`)
+  2. 共有 component `BulkDeleteModal` を新設
+     → admin だけでなく web / mobile からも参照可能な位置に置かれており、変更影響の重心はここ
 ```
 
-findings の例:
+findings の例 (このまま出力する形):
 
 ```
   1. [Critical 95] tenant_id が WHERE 句に含まれていない
@@ -259,14 +272,19 @@ This is a diff summary, not a briefing. It doesn't help the user review.
 > **要点**:
 > - 管理画面で複数ユーザーをまとめてアーカイブできるようになった。単体アーカイブ動線は残し、一覧画面に選択 UI + 一括操作モーダルを追加
 > - アーカイブ済みユーザーは一覧から非表示になり、検索条件で明示的に指定した場合のみ表示される
-> - (技術) DB: `archived_at` カラム追加 + backfill migration (~8 万件)
-> - (技術) `User.update()` の戻り値を新インスタンスに変更 (破壊的)。呼び出し側が戻り値を使うよう全部書き換え
-> - (技術) 共有 component `BulkDeleteModal` を追加、web / mobile にも波及
 >
 > **レビューで特に見るべきポイント**:
-> 1. `user.update(` の grep で戻り値を捨てている caller が残っていないか (破壊的変更の取りこぼし検査)
-> 2. backfill migration のロック戦略 — 8 万件を一括 UPDATE で OK か?
-> 3. `BulkDeleteModal` の signature 変更が web / mobile の既存 caller を壊していないか
-> 4. admin の権限チェック (CASL + Permission) が bulk 経路でも効いているか
+>
+>   1. `User.update()` の戻り値を新インスタンスに変更 (破壊的)
+>      → 既存の domain method の慣例 (in-place mutation) と意図的に異なる方針転換。なぜここで切り替えたかが議論点
+>
+>   2. Bulk archive を既存の単体 archive と別 UseCase で実装
+>      → 単体と bulk で権限・監査・通知の責務をどう分担したかの設計判断。共通化しなかった理由が論点
+>
+>   3. backfill migration が ~8 万件規模
+>      → ロック戦略 (一括 UPDATE / batch / online migration) の選択が乗っている本丸
+>
+>   4. 共有 component `BulkDeleteModal` を新設
+>      → admin だけでなく web / mobile からも参照可能な位置に置かれており、変更影響の重心はここ
 
 The second version gives the user a map. They know what to look at and why. They can skim if they already know the domain, or dive in if they don't. That's the bar.
