@@ -114,7 +114,7 @@
     ],
     "defaultMode": "auto"
   },
-  "model": "claude-fable-5[1m]",
+  "model": "opus[1m]",
   "hooks": {
     "PreToolUse": [
       {
@@ -133,7 +133,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "FILE=$(jq -r '.tool_input.file_path | select(endswith(\".js\") or endswith(\".ts\") or endswith(\".jsx\") or endswith(\".tsx\") or endswith(\".md\"))'); if [ -n \"$FILE\" ]; then d=$(dirname \"$FILE\"); while [ \"$d\" != \"/\" ] && [ ! -f \"$d/yarn.lock\" ]; do d=$(dirname \"$d\"); done; [ -f \"$d/yarn.lock\" ] && (cd \"$d\" && yarn exec prettier --write \"$FILE\"); fi"
+            "command": "FILE=$(jq -r '.tool_input.file_path | select(endswith(\".js\") or endswith(\".ts\") or endswith(\".jsx\") or endswith(\".tsx\") or endswith(\".md\"))'); if [ -n \"$FILE\" ]; then d=$(dirname \"$FILE\"); while [ \"$d\" != \"/\" ] && [ ! -f \"$d/yarn.lock\" ]; do d=$(dirname \"$d\"); done; if [ -f \"$d/yarn.lock\" ]; then (cd \"$d\" && yarn exec prettier --write \"$FILE\"); fi; fi"
           }
         ]
       }
