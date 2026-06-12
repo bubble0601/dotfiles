@@ -30,8 +30,11 @@
 	#       git fo a b:      → git fetch origin a b:b
 	fo = "!f() { [ -z \"$1\" ] && { echo \"branch required\"; return 1; }; refs=\"\"; for b in \"$@\"; do case \"$b\" in *:) n=${b%:}; refs=\"$refs $n:$n\" ;; *) refs=\"$refs $b\" ;; esac; done; git fetch origin $refs; }; f"
 	fp = fetch --prune
+	# 作業ツリーの未ステージ変更を捨てて HEAD の内容に戻す
 	rs = restore
+	# ステージを取り消す (git add の取り消し、作業ツリーは触らない)
 	rss = restore --staged
+	# hunk 単位で対話的に restore する
 	rsp = restore -p
 	co = checkout
 	rst = reset
