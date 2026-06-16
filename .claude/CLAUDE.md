@@ -7,7 +7,6 @@ skillは積極的に使うこと
 - **コミットメッセージは日本語で、ただしわかりやすさのために英語も併用してもよい**
   例: company テーブルに name カラムを追加した
 - ブランチ名は feature, bugfix, refactor, chore のいずれかで始めること
-- 変更をstageした後、commitする前に必ずユーザーにstageされた内容についてfeedbackがないか確認してください
 <!-- - git add は禁止です。必要であればユーザーにフィードバックすること -->
 
 ## coding
