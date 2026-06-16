@@ -29,7 +29,7 @@ done
 
 # ~/.claude 以下も親を作成してから個別ファイル/ディレクトリで symlink
 # (~/.claude には会話履歴等のランタイム生成物も含むため、ディレクトリ全体は symlink しない)
-CLAUDE_TARGETS=(.claude/settings.json .claude/skills .claude/statusline.sh .claude/statusline-wrapper.sh)
+CLAUDE_TARGETS=(.claude/settings.json .claude/skills .claude/hooks .claude/statusline.sh .claude/statusline-wrapper.sh)
 
 mkdir -p $HOME/.claude
 for tgt in ${CLAUDE_TARGETS[@]}
