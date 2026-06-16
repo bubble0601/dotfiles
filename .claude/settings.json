@@ -143,17 +143,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "afplay -v 4 /System/Library/Sounds/Submarine.aiff"
-          }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "afplay -v 3 /System/Library/Sounds/Glass.aiff"
+            "command": "afplay -v 2 /System/Library/Sounds/Submarine.aiff"
           }
         ]
       }

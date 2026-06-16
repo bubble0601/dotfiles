@@ -1,6 +1,9 @@
 # PATH の重複エントリを自動排除
 typeset -U path PATH
 
+# Homebrew (arm64)
+eval "$(/opt/homebrew/bin/brew shellenv)"
+
 export PATH="$HOME/.anyenv/bin:$PATH"
 eval "$(anyenv init -)"
 
