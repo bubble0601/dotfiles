@@ -1,7 +1,8 @@
 {
   "env": {
     "DISABLE_MICROCOMPACT": "true",
-    "CLAUDE_CODE_ENABLE_TASKS": "true"
+    "CLAUDE_CODE_ENABLE_TASKS": "true",
+    "CLAUDE_AFK_TIMEOUT_MS": "2147483647"
   },
   "permissions": {
     "allow": [
@@ -194,6 +195,7 @@
   },
   "language": "japanese",
   "effortLevel": "high",
+  "tui": "fullscreen",
   "voice": {
     "enabled": true,
     "mode": "hold"
