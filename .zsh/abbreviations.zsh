@@ -5,6 +5,7 @@ typeset -gi ABBR_QUIETER=1
 if (( $+functions[abbr] )); then
     abbr -S -q -f add gs='git status'
     abbr -S -q -f add pn='pnpm'
+    abbr -S -q -f add y='yarn'
     abbr -S -q -f add dc='docker compose'
     abbr -S -q -f add nr='npm run'
     abbr -S -q -f add psg='ps aux | grep'
