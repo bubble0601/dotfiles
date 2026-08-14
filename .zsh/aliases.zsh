@@ -62,6 +62,19 @@ difit() {
   fi
 }
 
+# リポジトリの場所は端末ごとに異なるため、~/.zshrc で KALEIDO_BIN を設定する
+kaleido() {
+  if [[ -z "$KALEIDO_BIN" ]]; then
+    echo "kaleido: KALEIDO_BIN is not set. Add 'export KALEIDO_BIN=/path/to/kaleido/dist/cli/index.js' to ~/.zshrc" >&2
+    return 1
+  fi
+  if [[ ! -f "$KALEIDO_BIN" ]]; then
+    echo "kaleido: '$KALEIDO_BIN' not found. Run 'pnpm build' in the kaleido repo" >&2
+    return 1
+  fi
+  node "$KALEIDO_BIN" "$@"
+}
+
 fbr() {
   local branches branch
   branches=$(git --no-pager branch -vv) &&
