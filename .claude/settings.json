@@ -1,5 +1,4 @@
 {
-  "switchModelsOnFlag": false,
   "env": {
     "DISABLE_MICROCOMPACT": "true",
     "CLAUDE_CODE_ENABLE_TASKS": "true",
@@ -97,6 +96,7 @@
     ],
     "defaultMode": "auto"
   },
+  "model": "opus",
   "hooks": {
     "PreToolUse": [
       {
@@ -192,6 +192,7 @@
     "enabled": true,
     "mode": "hold"
   },
+  "switchModelsOnFlag": false,
   "skipAutoPermissionPrompt": true,
   "voiceEnabled": true
 }
