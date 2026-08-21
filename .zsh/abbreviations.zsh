@@ -12,4 +12,5 @@ if (( $+functions[abbr] )); then
     abbr -S -q -f add szrc='source ~/.zshrc'
     abbr -S -q -f add nv='nvim'
     abbr -S -q -f add where='command -v'
+    abbr -S -q -f add caffe='caffeinate -dims'
 fi
