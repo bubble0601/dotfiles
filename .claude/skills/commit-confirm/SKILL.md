@@ -1,6 +1,6 @@
 ---
 name: commit-confirm
-description: stage された変更を `git commit` する直前に、必ずユーザーに stage 内容を見せて feedback を求めるためのワークフロー。複数 commit に分割するときは各回ループで確認。誤って確認なしで commit してしまったら soft reset で巻き戻して再確認する。`git add` の後、`git commit` を実行しようとするあらゆる場面で使うこと。`/commit` slash command 経由でも、ユーザーが「コミットして」「commit お願い」「これで commit して」と言った場合でも、Claude 自身が変更を一区切りつけて commit しようと判断した場面でも、確認をスキップせず必ずこの skill のフローに従う。CLAUDE.md の「stage 後 commit 前に確認」ルールを守るための guard skill。
+description: stage された変更を `git commit` する直前に、必ずユーザーに stage 内容を見せて feedback を求めるためのワークフロー。複数 commit に分割するときは各回ループで確認。誤って確認なしで commit してしまったら soft reset で巻き戻して再確認する。ユーザーが `/commit` skill を明示的に呼び出した場合を除き、`git add` の後、`git commit` を実行しようとするあらゆる場面で使うこと。ユーザーが「コミットして」「commit お願い」「これで commit して」と言った場合でも、Claude 自身が変更を一区切りつけて commit しようと判断した場面でも、確認をスキップせず必ずこの skill のフローに従う。CLAUDE.md の「stage 後 commit 前に確認」ルールを守るための guard skill。
 ---
 
 # commit-confirm
@@ -10,6 +10,10 @@ stage された変更を commit する前に、**stage に含まれる変更内�
 ## なぜ必要か
 
 ユーザーが commit 直前に stage 内容を一度自分の目で確認したいから。
+
+## 例外
+
+ユーザーが `/commit` skill を明示的に呼び出したときは、その呼び出し自体を承認とみなすのでこのフローは踏まない。それ以外(ユーザーが自然文で「コミットして」と言った、Claude 自身が一区切りついたと判断した、など)はすべてこのフローに従う。
 
 ## 基本フロー
 
