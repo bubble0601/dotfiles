@@ -17,6 +17,9 @@ trust_level = "untrusted"
 [projects."/Users/awaka/kb/keibi-force"]
 trust_level = "trusted"
 
+[projects."/Users/awaka/Library/Application Support/orca/rate-limit-pty-cwd"]
+trust_level = "trusted"
+
 # --- explorer: コードを読むだけの調査エージェント ---
 [agents.explorer]
 description = "Codebase research agent. Use for all code investigation, no edits."
@@ -37,3 +40,29 @@ status_line = ["model-with-reasoning", "current-dir", "project-root", "git-branc
 
 [tui.model_availability_nux]
 "gpt-5.5" = 4
+
+[hooks.state]
+
+[hooks.state."/Users/awaka/.codex/hooks.json:pre_tool_use:0:0"]
+trusted_hash = "sha256:fd2a29746b2d9f965241ce53fadd546ae2d6552ff6718ac282ce3845d47fbab0"
+
+[hooks.state."/Users/awaka/.codex/hooks.json:permission_request:0:0"]
+trusted_hash = "sha256:718b72c23758e42c6e67a86e750d7b0cff10df7c157ec63ea336d52ca6c87f3e"
+
+[hooks.state."/Users/awaka/.codex/hooks.json:post_tool_use:0:0"]
+trusted_hash = "sha256:1fd259c47f13171eed020ab3d95400288cc999413fdcd329fde9dff87b1758c4"
+
+[hooks.state."/Users/awaka/.codex/hooks.json:session_start:0:0"]
+trusted_hash = "sha256:dae04c087518eae6bf3c9659950b00fd3dd2217403ab108a67ea73c8057d6829"
+
+[hooks.state."/Users/awaka/.codex/hooks.json:user_prompt_submit:0:0"]
+trusted_hash = "sha256:eb276c1aec8f2a0fe990ef46740ac0eff36923075f4d905cfa1f65b78311838a"
+
+[hooks.state."/Users/awaka/.codex/hooks.json:subagent_start:0:0"]
+trusted_hash = "sha256:2d9309660d452c3badff9357d57dc4c75180027e24c0416a79c8d4390c665ad2"
+
+[hooks.state."/Users/awaka/.codex/hooks.json:subagent_stop:0:0"]
+trusted_hash = "sha256:238c41041462e3f8e181f3109b30e3ac64145ff9e4b92e302dda40666ca947a3"
+
+[hooks.state."/Users/awaka/.codex/hooks.json:stop:0:0"]
+trusted_hash = "sha256:1d58b1dd12bfe7737a785ff64f048e8ac965c070bb6ff1e7f6b11e521531e2fb"
