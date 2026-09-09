@@ -1,2 +1,8 @@
-model = "gpt-5.3-spark"           # 高速モデルを指定（コストと速度を優先）
-model_reasoning_effort = "xhigh"
+name = "fast_worker"
+description = "Fast scoped implementation agent."
+model = "gpt-5.6-luna"           # 高速モデルを指定（コストと速度を優先）
+model_reasoning_effort = "low"
+developer_instructions = """
+Implement small, well-scoped changes quickly.
+Keep unrelated files untouched and verify the behavior you changed.
+"""

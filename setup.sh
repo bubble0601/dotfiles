@@ -44,9 +44,10 @@ if [ ! -e $HOME/.claude/CLAUDE.md ]; then
 fi
 
 # ~/.codex 以下も同様に個別 symlink (auth.json, history, sessions 等のランタイム生成物は除外)
-CODEX_TARGETS=(.codex/config.toml .codex/AGENTS.md .codex/agents .codex/rules)
+CODEX_TARGETS=(.codex/AGENTS.md .codex/agents .codex/rules)
 
 mkdir -p $HOME/.codex
+ln -fnsv $HOME/dotfiles/.codex/user-config.toml $HOME/.codex/config.toml
 for tgt in ${CODEX_TARGETS[@]}
 do
     ln -fnsv $HOME/dotfiles/$tgt $HOME/$tgt
