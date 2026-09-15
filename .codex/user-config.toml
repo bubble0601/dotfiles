@@ -49,7 +49,7 @@ status_line = ["model-with-reasoning", "current-dir", "project-root", "git-branc
 
 [tui.model_availability_nux]
 "gpt-5.5" = 4
-gpt-6-astra = 2
+gpt-6-astra = 4
 
 [hooks.state]
 
@@ -76,3 +76,4 @@ trusted_hash = "sha256:238c41041462e3f8e181f3109b30e3ac64145ff9e4b92e302dda40666
 
 [hooks.state."/Users/awaka/.codex/hooks.json:stop:0:0"]
 trusted_hash = "sha256:1d58b1dd12bfe7737a785ff64f048e8ac965c070bb6ff1e7f6b11e521531e2fb"
+
