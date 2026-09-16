@@ -3,7 +3,8 @@
     "DISABLE_MICROCOMPACT": "true",
     "CLAUDE_CODE_ENABLE_TASKS": "true",
     "CLAUDE_AFK_TIMEOUT_MS": "2147483647",
-    "NODE_OPTIONS": ""
+    "NODE_OPTIONS": "",
+    "CLAUDE_CODE_SUBAGENT_MODEL": "opus"
   },
   "permissions": {
     "allow": [
