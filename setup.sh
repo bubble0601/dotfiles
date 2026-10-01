@@ -43,6 +43,13 @@ if [ ! -e $HOME/.claude/CLAUDE.md ]; then
     echo "created $HOME/.claude/CLAUDE.md (includes ~/dotfiles/.claude/CLAUDE.md)"
 fi
 
+# skills-lock.json の外部 skill を .agents/skills に取得 (.claude/skills/<name> はそこへの symlink を commit 済み)
+if command -v npx >/dev/null 2>&1; then
+    (cd $HOME/dotfiles && npx -y skills experimental_install)
+else
+    echo "npx not found: skipped restoring skills from skills-lock.json"
+fi
+
 # ~/.codex 以下も同様に個別 symlink (auth.json, history, sessions 等のランタイム生成物は除外)
 CODEX_TARGETS=(.codex/AGENTS.md .codex/agents .codex/rules)
 
