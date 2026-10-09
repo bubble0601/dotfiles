@@ -32,7 +32,7 @@
  document.addEventListener('keydown',function(e){if(e.key==='Escape'&&pop.style.display==='block')closePop();});
  /* copy */
  function build(){
-  var lines=['# __TITLE__ — 回答・コメント',''];
+  var lines=['# __TITLE__ — __COPY_HEADING__',''];
   var secs=Array.prototype.slice.call(document.querySelectorAll('header,section'));
   secs.forEach(function(sec,si){
    var eb=sec.querySelector('.eyebrow'),h=sec.querySelector('h2,h1');
@@ -46,6 +46,16 @@
  }
  var st=document.getElementById('copystatus');function say(m){st.textContent=m;}
  document.getElementById('btn-copy').addEventListener('click',function(){var text=build();var done=function(){say('コピーしました('+new Date().toLocaleTimeString('ja-JP')+')');};var fail=function(){var ob=document.getElementById('outbox'),ta=document.getElementById('outtext');ta.value=text;ob.hidden=false;ta.focus();ta.select();say('自動コピーできませんでした。下の欄を選択してコピーしてください。');};function legacy(){try{var ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();var ok=document.execCommand('copy');document.body.removeChild(ta);ok?done():fail();}catch(e){fail();}}if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).then(done,legacy);}else{legacy();}});
+ /* タッチ環境は下端にカーソルを置けないため、autohide はマウス環境だけ */
+ var bar=document.getElementById('copybar');
+ if(window.matchMedia&&matchMedia('(hover: hover)').matches){
+  bar.classList.add('autohide');
+  /* getBoundingClientRect は出入りのアニメーション中の transform を含むため、表示時の位置を計算で出す */
+  var shownTop=function(){return window.innerHeight-(parseFloat(getComputedStyle(bar).bottom)||0)-bar.offsetHeight;};
+  var hide=function(){bar.classList.remove('show');if(bar.contains(document.activeElement))document.activeElement.blur();};
+  document.addEventListener('mousemove',function(e){if(bar.classList.contains('show')){if(e.clientY<shownTop()-8)hide();}else if(e.clientY>=window.innerHeight-48){bar.classList.add('show');}});
+  bar.addEventListener('focusin',function(){bar.classList.add('show');});
+ }
  areas.forEach(function(t){t.addEventListener('input',function(){save();t.style.height='auto';t.style.height=(t.scrollHeight+2)+'px';});});
  load();areas.forEach(function(t){if(t.value){t.style.height='auto';t.style.height=(t.scrollHeight+2)+'px';}});
  mload();renderList();if(document.fonts&&document.fonts.ready){document.fonts.ready.then(paint);}else{paint();}
