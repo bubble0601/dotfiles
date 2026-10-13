@@ -1,6 +1,7 @@
 ---
 name: onepager-artifact
 description: 内容を知らない人向けに「大きな画像 + 少ない言葉」で説明するペライチ HTML(Artifact)を作る。実画面に近いモック図を HTML → headless Chrome で描いて base64 埋め込みする。本文への選択コメントと全入力のコピーはどの資料にも付き、資料の種別を判定して提案資料(企画・仕様の共有、ヒアリング)のときだけ質問の回答欄を付ける。機能紹介・操作説明・仕組みの解説・リリース告知などの読むだけの資料にも使う。
+disable-model-invocation: true
 ---
 
 # ペライチ Artifact
