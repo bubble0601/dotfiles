@@ -1,0 +1,42 @@
+<header>
+  <div class="eyebrow">設計メモ / 請求チーム向け</div>
+  <h1>前月分の調整を、どのテーブルに持つか</h1>
+  <p class="lead">調整を請求明細の 1 行として持つ案を推奨します。決めてほしいのは 2 点です。</p>
+</header>
+
+<section>
+  <h2>結論</h2>
+  <div class="callout good"><b>推奨: 案 B(請求明細に調整行を足す)</b>消込・帳票が今のまま動き、追加のテーブルが要らない。</div>
+  <div class="cols">
+    <div class="card"><h4>案 A: 調整テーブルを別に作る</h4><p>履歴を独立して持てる。消込と帳票の両方に合算処理が要る。</p></div>
+    <div class="card pick"><h4>案 B: 請求明細に調整行を足す</h4><p>既存の合計処理がそのまま使える。行の種類を表す列を 1 つ足す。</p></div>
+  </div>
+</section>
+
+<section>
+  <h2>変更点</h2>
+  <div class="tbl"><table>
+    <tr><th>対象</th><th>変更</th><th class="num">工数(日)</th></tr>
+    <tr><td><code>invoice_items</code></td><td><code>item_type</code> 列を追加(<code>regular</code> / <code>adjustment</code>)</td><td class="num">1</td></tr>
+    <tr><td>請求画面</td><td>「調整を登録」ダイアログを追加</td><td class="num">3</td></tr>
+    <tr><td>帳票</td><td>調整行の表示名を変える</td><td class="num">0.5</td></tr>
+  </table></div>
+  <figure><img src="img/mock_app_screen.jpg" alt="登録後の請求明細に調整の別行が出ている"><figcaption>登録後の請求明細(イメージ)</figcaption></figure>
+</section>
+
+<section>
+  <h2>移行の手順</h2>
+  <ol class="steps">
+    <li>列を追加し、既存の行はすべて <code>regular</code> にする</li>
+    <li>画面と帳票をリリースする</li>
+    <li>経理担当に先月分の調整を試してもらう</li>
+  </ol>
+</section>
+
+<section>
+  <h2>決めてほしいこと</h2>
+  <div class="qs">
+    <div class="q"><div class="n">質問 1</div><p>調整の理由は選択式でよいですか?</p><small>自由入力にすると帳票での集計ができない</small><label class="ans"><span>回答</span><textarea data-kind="q" rows="2" placeholder="ここに回答を書く"></textarea></label></div>
+    <div class="q"><div class="n">質問 2</div><p>確定済みの請求への調整を許しますか?</p><small>許す場合は再発行の運用が要る</small><label class="ans"><span>回答</span><textarea data-kind="q" rows="2" placeholder="ここに回答を書く"></textarea></label></div>
+  </div>
+</section>
