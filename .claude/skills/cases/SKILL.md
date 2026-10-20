@@ -4,7 +4,7 @@ description: QA 向けのテストケースを cases.md に出力
 disable-model-invocation: true
 ---
 
-現在のタスクに対するQA 向けの包括的なテストケースを考えて`(project root)/cases.md`に出力して
+現在のタスクに対するQA 向けのテストケースを考えて`(project root)/cases.md`に出力して
 
 例(粒度の参考用)
 
@@ -17,3 +17,5 @@ disable-model-invocation: true
 - markdown checkbox 記法で
 - 技術的な用語や修飾子名などで使用している英語は使わず日本語で
 - 画面操作で行うので、画面やボタン、操作などのブラックボックステスト形式で
+- 正常系を中心にする。異常系は入力エラーで保存できないなど、主要なものに絞る
+- ラベルやメッセージの細かい文言は確認対象にしない
