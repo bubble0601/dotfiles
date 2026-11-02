@@ -1,0 +1,956 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>セキュリティ検査</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+JP:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #e9edf1;
+    --panel: #fbfcfd;
+    --ink: #16222e;
+    --ink-2: #53667a;
+    --rule: #c3ced8;
+    --rule-firm: #8c9dad;
+    --signal: #0f5f8a;
+    --signal-wash: #d7e6ef;
+    --high: #9e2a2b; --high-wash: #f7dedd;
+    --medium: #86560f; --medium-wash: #f7ead1;
+    --low: #3a5c7d; --low-wash: #e1ebf3;
+    --drawer-w: min(1120px, 94vw);
+    /* OS がダークでもフォーム部品やスクロールバーを明るい見た目にそろえる */
+    color-scheme: light;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font-family: "IBM Plex Sans JP", "Hiragino Sans", "Yu Gothic", sans-serif;
+    font-size: 15px; line-height: 1.75; -webkit-font-smoothing: antialiased;
+  }
+  code, .mono {
+    font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+    font-size: 0.85em; overflow-wrap: anywhere;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 20px; }
+  :focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; }
+
+  /* ---- 見出し。一覧を押し下げないよう最小限 ---- */
+  header { padding: 20px 0 0; }
+  .head-top { display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; }
+  h1 { font-size: 23px; font-weight: 700; margin: 0; line-height: 1.4; }
+  .tally { font-size: 13px; color: var(--ink-2); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .tally b { font-family: "IBM Plex Mono", monospace; color: var(--ink); font-weight: 600; }
+  .tools { margin-left: auto; display: flex; gap: 6px; }
+  .meta { font-size: 12.5px; color: var(--ink-2); margin: 4px 0 0; }
+  .btn {
+    appearance: none; font: inherit; font-size: 13px; cursor: pointer;
+    background: var(--panel); color: var(--ink); border: 1px solid var(--rule); padding: 4px 11px;
+  }
+  .btn:hover { border-color: var(--signal); color: var(--signal); }
+
+  /* ---- 範囲のタブ ---- */
+  .tabs { display: flex; flex-wrap: wrap; gap: 0 2px; margin: 14px 0 0; border-bottom: 1px solid var(--rule-firm); }
+  .tab {
+    appearance: none; font: inherit; font-size: 13.5px; cursor: pointer; background: none; color: var(--ink-2);
+    border: 0; border-bottom: 3px solid transparent; padding: 6px 12px 5px; margin-bottom: -1px;
+  }
+  .tab:hover { color: var(--ink); }
+  .tab[aria-selected="true"] { color: var(--ink); font-weight: 600; border-bottom-color: var(--signal); }
+  .tab-count { font-family: "IBM Plex Mono", monospace; font-size: 11.5px; color: var(--ink-2); margin-left: 6px; font-weight: 400; }
+  .scope-desc { font-size: 12.5px; color: var(--ink-2); margin: 8px 0 0; }
+
+  /* ---- 一覧 ---- */
+  .board-scroll { margin: 8px 0 0; }
+  .board {
+    width: 100%; border-collapse: collapse; background: var(--panel);
+    border: 1px solid var(--rule-firm); min-width: 900px;
+  }
+  .board thead th {
+    text-align: left; font-size: 11.5px; font-weight: 600; color: var(--ink-2);
+    padding: 7px 12px; border-bottom: 1px solid var(--rule-firm);
+    position: sticky; top: 0; background: var(--panel); z-index: 2;
+  }
+  .board tbody tr { border-top: 1px solid var(--rule); cursor: pointer; }
+  .board tbody tr:first-child { border-top: 0; }
+  .board tbody tr:hover { background: var(--signal-wash); }
+  .board tbody tr[aria-current="true"] { background: var(--signal-wash); }
+  .board td { padding: 9px 12px; vertical-align: top; font-size: 13.5px; line-height: 1.6; }
+
+  /* カテゴリの見出し行。押せる行と見分けがつくよう地の色を変える */
+  .board tbody tr.cat-row { cursor: default; border-top: 1px solid var(--rule-firm); }
+  .board tbody tr.cat-row:hover { background: none; }
+  .cat-row th {
+    text-align: left; font-weight: 400; padding: 10px 12px 6px; background: var(--paper);
+    display: table-cell;
+  }
+  .cat-name { font-weight: 700; font-size: 14px; margin-right: 10px; }
+  .cat-desc { font-size: 12.5px; color: var(--ink-2); margin-right: 14px; }
+  .cat-count { font-size: 12px; color: var(--ink-2); white-space: nowrap; }
+
+  /* 問題のないカテゴリ。押せる行と見分けがつくよう、地を塗らず点線で囲む */
+  .board tbody tr.ph-row { cursor: default; }
+  .board tbody tr.ph-row:hover { background: none; }
+  .ph-row td { color: var(--ink-2); font-size: 13px; }
+  .ph-badge {
+    display: inline-block; font-size: 11px; font-weight: 600; color: var(--ink-2);
+    border: 1px dashed var(--rule-firm); padding: 0 6px; margin-bottom: 4px;
+  }
+  .ph-badge.checked { border-style: solid; }
+  .ph-points { margin: 0; padding-left: 1.25em; }
+  .ph-points li { margin-bottom: 2px; }
+  .ph-refs { margin-top: 4px; font-size: 12px; }
+
+  /* 左端の帯で、行ごとの最も重い深刻度を縦に読めるようにする */
+  td.c-issue { border-left: 4px solid transparent; }
+  tr.worst-HIGH td.c-issue { border-left-color: var(--high); }
+  tr.worst-MEDIUM td.c-issue { border-left-color: var(--medium); }
+  tr.worst-LOW td.c-issue { border-left-color: var(--low); }
+  .c-issue { width: 300px; }
+  .c-effect, .c-approach { width: auto; color: var(--ink-2); }
+  .c-find { width: 178px; }
+  .c-scope { width: 72px; color: var(--ink-2); font-size: 12.5px; white-space: nowrap; }
+
+  /* 字下げで、2 行目以降の頭を記号の後ろにそろえる */
+  .issue-head { display: grid; grid-template-columns: auto 1fr; gap: 0 7px; align-items: baseline; }
+  .issue-key {
+    font-family: "IBM Plex Mono", monospace; font-size: 15px; font-weight: 600;
+    color: var(--signal);
+  }
+  .issue-title { font-weight: 600; font-size: 14px; color: var(--ink); }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 3px; }
+  .chip {
+    appearance: none; font-family: "IBM Plex Mono", monospace; font-size: 12px;
+    font-weight: 600; cursor: pointer; padding: 0 6px; border: 1px solid; line-height: 1.6;
+  }
+  .chip.HIGH { color: var(--high); background: var(--high-wash); border-color: var(--high); }
+  .chip.MEDIUM { color: var(--medium); background: var(--medium-wash); border-color: var(--medium); }
+  .chip.LOW { color: var(--low); background: var(--low-wash); border-color: var(--low); }
+  .chip.shared { border-style: dashed; }
+  .chip[aria-current="true"] { outline: 2px solid var(--signal); outline-offset: 1px; }
+  /* 対応済みは消さずに薄くする。どの対策で直ったかを対応表で追えるようにするため */
+  .chip.done { color: var(--ink-2); background: transparent; border-color: var(--rule-firm); border-style: dashed; }
+  .done-badge {
+    display: inline-block; font-size: 11px; font-weight: 600; color: var(--ink-2);
+    border: 1px dashed var(--rule-firm); padding: 0 5px; margin-left: 6px; white-space: nowrap;
+  }
+
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; font-size: 12px; color: var(--ink-2); padding: 8px 2px 28px; }
+  .legend span { display: inline-flex; align-items: center; gap: 5px; }
+  .sw { width: 11px; height: 11px; border: 1px solid; display: inline-block; }
+  .sw.HIGH { background: var(--high-wash); border-color: var(--high); }
+  .sw.MEDIUM { background: var(--medium-wash); border-color: var(--medium); }
+  .sw.LOW { background: var(--low-wash); border-color: var(--low); }
+  .sw.done { background: transparent; border-color: var(--rule-firm); border-style: dashed; }
+
+  /* ---- 右から出る詳細(モーダル)。一覧の幅には影響させない ---- */
+  #sheet, #extra {
+    width: var(--drawer-w); max-width: 94vw;
+    height: 100%; max-height: 100%;
+    margin: 0 0 0 auto; padding: 0; border: 0;
+    border-left: 3px solid var(--rule-firm);
+    background: var(--panel); color: var(--ink);
+    overflow-y: auto; overscroll-behavior: contain;
+  }
+  /* 背面の一覧を読めるように、覆いは薄くする */
+  #sheet::backdrop, #extra::backdrop { background: rgba(12, 22, 31, 0.28); }
+  .sheet-in { padding: 0 28px 28px; }
+  .sheet-head {
+    display: flex; align-items: flex-start; gap: 12px;
+    position: sticky; top: 0; z-index: 2; background: var(--panel);
+    padding: 14px 0 10px; border-bottom: 1px solid var(--rule);
+  }
+  .sheet-head h2 { font-size: 17px; font-weight: 700; margin: 0; line-height: 1.45; }
+  .sheet-head .sub { font-size: 12.5px; color: var(--ink-2); margin-top: 2px; }
+  .sheet-close { margin-left: auto; flex: none; }
+  .sheet-body { margin-top: 12px; }
+  .sheet-body h3 {
+    font-size: 12.5px; font-weight: 600; color: var(--ink-2);
+    margin: 14px 0 4px; padding-bottom: 3px; border-bottom: 1px solid var(--rule);
+  }
+  .sheet-body h3:first-child { margin-top: 0; }
+  .sheet-body p { margin: 0; font-size: 13.5px; max-width: 72ch; }
+  .cols { display: grid; grid-template-columns: 1fr; gap: 18px 0; align-items: start; }
+  @media (min-width: 900px) { .cols { grid-template-columns: 1fr 1fr; gap: 0 34px; } }
+  /* ---- 対策 × 指摘の対応表 ---- */
+  .mx-scroll { overflow-x: auto; margin-top: 4px; }
+  table.mx { width: 100%; border-collapse: collapse; }
+  table.mx th, table.mx td { border-top: 1px dotted var(--rule); padding: 7px 6px; vertical-align: top; }
+  table.mx thead th { border-top: 0; border-bottom: 1px solid var(--rule-firm); font-weight: 400; }
+  table.mx thead th.mx-f { text-align: center; vertical-align: bottom; width: 52px; }
+  .mx-from { display: block; font-size: 10.5px; color: var(--ink-2); line-height: 1.3; margin-top: 2px; white-space: nowrap; }
+  table.mx td.mx-c {
+    text-align: center; font-size: 15px; line-height: 1.5; color: var(--ink);
+    border-left: 1px dotted var(--rule);
+  }
+  table.mx td.mx-c.reduce { color: var(--ink-2); }
+  table.mx td.mx-c.ext, table.mx th.mx-f.ext { background: var(--paper); }
+  .mx-m { display: grid; grid-template-columns: 22px 1fr; gap: 0 6px; }
+  .mx-n { font-family: "IBM Plex Mono", monospace; font-weight: 600; font-size: 12.5px; color: var(--ink-2); line-height: 1.9; }
+  .opt-label { font-weight: 600; font-size: 14px; }
+  .opt-badge {
+    font-size: 11px; font-weight: 600; color: var(--signal);
+    border: 1px solid var(--signal); padding: 0 5px; margin-left: 6px; white-space: nowrap;
+  }
+  .opt-badge.prevent { color: var(--ink-2); border-color: var(--ink-2); }
+  .opt-body { color: var(--ink-2); font-size: 12.5px; max-width: 70ch; }
+  td.mx-prevent { color: var(--ink-2); font-size: 12px; border-left: 1px dotted var(--rule); }
+  .mx-legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 12px; color: var(--ink-2); margin-top: 6px; }
+  .m-list { margin: 4px 0 0; padding: 0; list-style: none; }
+  .m-list li { display: grid; grid-template-columns: 20px auto 1fr; gap: 0 8px; padding: 5px 0; border-top: 1px dotted var(--rule); font-size: 13.5px; align-items: baseline; }
+  .m-list li:first-child { border-top: 0; }
+  .m-list .m-ref { font-family: "IBM Plex Mono", monospace; font-size: 12.5px; color: var(--ink-2); }
+  .m-list .link { justify-self: start; text-align: left; }
+  .warn-note { margin-top: 8px; font-size: 12.5px; color: var(--medium); }
+  .sheet-note { margin-top: 12px; padding: 9px 13px; background: var(--signal-wash); font-size: 13px; }
+  .f-list { margin: 4px 0 0; padding: 0; list-style: none; }
+  .f-list li {
+    padding: 6px 0; border-top: 1px dotted var(--rule);
+    display: grid; grid-template-columns: auto 1fr; gap: 0 9px; align-items: start;
+  }
+  .f-list li:first-child { border-top: 0; }
+  .f-list .f-t { font-size: 13.5px; font-weight: 500; }
+  .f-list .f-c { font-size: 12.5px; color: var(--ink-2); }
+  .sev { display: inline-block; font-size: 11px; font-weight: 600; padding: 0 6px; }
+  .sev.HIGH { color: var(--high); background: var(--high-wash); }
+  .sev.MEDIUM { color: var(--medium); background: var(--medium-wash); }
+  .sev.LOW { color: var(--low); background: var(--low-wash); }
+  .memo { margin-top: 14px; }
+  .memo label { display: block; font-size: 12.5px; font-weight: 600; color: var(--ink-2); margin-bottom: 4px; }
+  textarea {
+    width: 100%; min-height: 58px; resize: vertical; font: inherit; font-size: 14px;
+    line-height: 1.7; color: var(--ink); background: var(--paper);
+    border: 1px dashed var(--rule-firm); padding: 8px 10px;
+  }
+  textarea:focus { border-style: solid; border-color: var(--signal); }
+  .link { appearance: none; border: 0; background: none; padding: 0; font: inherit; font-size: 13px; color: var(--signal); cursor: pointer; text-decoration: underline; }
+
+  /* ---- ホバーの覗き見 ---- */
+  #tip {
+    position: absolute; z-index: 30; max-width: 330px; pointer-events: none;
+    background: var(--ink); color: var(--panel); padding: 7px 10px;
+    font-size: 12.5px; line-height: 1.6;
+  }
+  #tip[hidden] { display: none; }
+  #tip b { display: block; font-weight: 600; margin-bottom: 2px; }
+
+  /* ---- 下部の補足 ---- */
+  .bullets { margin: 4px 0 0; padding-left: 1.25em; font-size: 13.5px; color: var(--ink-2); }
+  .bullets li { margin-bottom: 5px; }
+  .ex-row { display: grid; grid-template-columns: 150px 1fr; gap: 0 14px; padding: 6px 0; border-top: 1px dotted var(--rule); font-size: 13px; }
+  .ex-row:first-of-type { border-top: 0; }
+  .ex-row dt { font-family: "IBM Plex Mono", monospace; font-size: 12.5px; color: var(--ink-2); }
+  .ex-row dd { margin: 0; color: var(--ink-2); }
+  .store-warn { margin-top: 10px; padding: 8px 12px; font-size: 12.5px; background: var(--medium-wash); color: var(--medium); }
+  .store-warn[hidden] { display: none; }
+
+  /* 書き出し用。詳細パネルも dialog なので、要素名ではなく id で絞る */
+  #dlg { border: 1px solid var(--rule-firm); background: var(--panel); color: var(--ink); width: min(760px, 92vw); padding: 18px; }
+  #dlg::backdrop { background: rgba(12, 22, 31, 0.5); }
+  #dlg p { margin: 0 0 10px; font-size: 13.5px; color: var(--ink-2); }
+  #dlg textarea { min-height: 320px; font-family: "IBM Plex Mono", monospace; font-size: 12.5px; border-style: solid; }
+  .dialog-foot { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
+
+  @media (max-width: 980px) {
+    /* 5 列は収まらないので横スクロール */
+    .board-scroll { overflow-x: auto; }
+    .ex-row { grid-template-columns: 1fr; }
+    /* 画面が狭いときは脇に寄せる余地がないので覆う */
+    #sheet, #extra { width: 100%; max-width: 100%; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="head-top">
+      <h1 id="title">セキュリティ検査</h1>
+      <div class="tally" id="tally"></div>
+      <div class="tools">
+        <button class="btn" id="open-extra">補足</button>
+        <button class="btn" id="export">メモを書き出す</button>
+      </div>
+    </div>
+    <p class="meta" id="meta"></p>
+  </header>
+
+  <div class="tabs" role="tablist" id="tabs"></div>
+  <p class="scope-desc" id="scope-desc"></p>
+
+  <div class="board-scroll">
+    <table class="board" id="board">
+      <thead>
+        <tr>
+          <th class="c-issue">問題</th>
+          <th class="c-effect">起きること</th>
+          <th class="c-approach">対策の方向</th>
+          <th class="c-find">指摘</th>
+          <th class="c-scope">規模</th>
+        </tr>
+      </thead>
+    </table>
+  </div>
+
+  <div class="legend">
+    <span><i class="sw HIGH"></i>HIGH</span>
+    <span><i class="sw MEDIUM"></i>MEDIUM</span>
+    <span><i class="sw LOW"></i>LOW</span>
+    <span><i class="sw done"></i>対応済み</span>
+    <span>行を押すと問題の詳細(指摘と対策の対応表)、記号を押すと指摘の詳細が右に開きます。記号にカーソルを合わせると概要が出ます</span>
+  </div>
+
+</div>
+
+<div id="tip" hidden></div>
+
+<dialog id="extra" aria-label="補足">
+  <div class="sheet-in">
+    <div class="sheet-head">
+      <div>
+        <h2>補足</h2>
+        <div class="sub">確認が必要なこと、検査していない範囲、対象外にした指摘、全体のメモ</div>
+      </div>
+      <button class="btn sheet-close" id="extra-close">閉じる</button>
+    </div>
+    <div class="sheet-body">
+      <div class="cols">
+        <div>
+          <h3>確認が必要なこと</h3>
+          <ul class="bullets" id="questions"></ul>
+          <h3>検査していない範囲</h3>
+          <ul class="bullets" id="not-examined"></ul>
+          <div class="memo">
+            <label for="memo-global">全体のメモ</label>
+            <textarea id="memo-global" placeholder="議論の結論、優先順位、担当など"></textarea>
+          </div>
+          <div class="store-warn" id="store-warn" hidden>
+            このブラウザではメモを保存できません。書き終えたら「メモを書き出す」で控えを取ってください。
+          </div>
+        </div>
+        <div>
+          <h3>対象外にした指摘</h3>
+          <dl id="excluded"></dl>
+        </div>
+      </div>
+    </div>
+  </div>
+</dialog>
+
+<dialog id="sheet" aria-label="詳細">
+  <div class="sheet-in">
+    <div class="sheet-head">
+      <div>
+        <h2 id="sheet-title"></h2>
+        <div class="sub" id="sheet-sub"></div>
+      </div>
+      <button class="btn sheet-close" id="sheet-close">閉じる</button>
+    </div>
+    <div class="sheet-body" id="sheet-body"></div>
+  </div>
+</dialog>
+
+<dialog id="dlg">
+  <p id="dlg-msg"></p>
+  <textarea id="dlg-text" readonly></textarea>
+  <div class="dialog-foot">
+    <button class="btn" id="dlg-copy">もう一度コピー</button>
+    <button class="btn" id="dlg-close">閉じる</button>
+  </div>
+</dialog>
+
+<script src="./security-review.data.js"></script>
+<script>
+(function () {
+  var D = window.SCAN;
+  /* メモの保存先。資料ごとに変え、別の資料のメモと混ざらないようにする */
+  var STORE = D.meta.storeKey || 'security-review';
+  var TITLE = D.meta.title || 'セキュリティ検査';
+  document.title = TITLE;
+  document.getElementById('title').textContent = TITLE;
+  var SEV_RANK = { HIGH: 0, MEDIUM: 1, LOW: 2 };
+
+  /* ---- メモ。file:// などで失敗しうるので必ず try ---- */
+  var memos = {}, canStore = true;
+  try {
+    memos = JSON.parse(localStorage.getItem(STORE) || '{}') || {};
+    localStorage.setItem(STORE, JSON.stringify(memos));
+  } catch (e) { canStore = false; memos = {}; }
+  if (!canStore) document.getElementById('store-warn').hidden = false;
+
+  /* 保存済みのメモを、記号を付け替えた後の記号に移す。問題の記号を付け替えたときだけ、旧→新の対応表を末尾に足す */
+  var KEY_RENAMES = [];
+  var keyVersion = memos.__keyVersion || 0;
+  if (keyVersion < KEY_RENAMES.length) {
+    KEY_RENAMES.slice(keyVersion).forEach(function (map) {
+      var next = {};
+      Object.keys(memos).forEach(function (k) { next[map[k] || k] = memos[k]; });
+      memos = next;
+    });
+    memos.__keyVersion = KEY_RENAMES.length;
+    if (canStore) {
+      try { localStorage.setItem(STORE, JSON.stringify(memos)); } catch (e) { canStore = false; }
+    }
+  }
+  function saveMemo(k, v) {
+    memos[k] = v;
+    if (!canStore) return;
+    try { localStorage.setItem(STORE, JSON.stringify(memos)); } catch (e) { canStore = false; }
+  }
+
+  function el(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    return n;
+  }
+  /* 対応済みは末尾に回す */
+  function bySev(a, b) {
+    return (a.resolved ? 1 : 0) - (b.resolved ? 1 : 0) || SEV_RANK[a.sev] - SEV_RANK[b.sev];
+  }
+
+  /* ---- 索引。指摘 → 属する問題、指摘 → 効く対策 ---- */
+  var findingIndex = {}, owner = {}, issueIndex = {}, measuresFor = {};
+  D.issues.forEach(function (s) {
+    issueIndex[s.key] = s;
+    s.findings.forEach(function (f) { findingIndex[f.id] = f; owner[f.id] = s.key; });
+  });
+  D.issues.forEach(function (s) {
+    s.measures.forEach(function (mz, i) {
+      [['fixes', true], ['reduces', false]].forEach(function (p) {
+        (mz[p[0]] || []).forEach(function (id) {
+          (measuresFor[id] = measuresFor[id] || []).push({ issue: s, measure: mz, n: i + 1, fixes: p[1] });
+        });
+      });
+    });
+  });
+  function effectOf(mz, id) {
+    if ((mz.fixes || []).indexOf(id) >= 0) return 'fix';
+    if ((mz.reduces || []).indexOf(id) >= 0) return 'reduce';
+    return null;
+  }
+  function zoneName(k) {
+    for (var i = 0; i < D.zones.length; i++) if (D.zones[i].key === k) return D.zones[i].name;
+    return k;
+  }
+  function openFindings(s) { return s.findings.filter(function (f) { return !f.resolved; }); }
+  /* 深刻度の集計は未対応の指摘だけで行う。全部対応済みなら null */
+  function worstOf(s) {
+    var w = null;
+    openFindings(s).forEach(function (f) { if (w == null || SEV_RANK[f.sev] < SEV_RANK[w]) w = f.sev; });
+    return w;
+  }
+
+  /* ---- 見出しの集計 ---- */
+  var tally = { HIGH: 0, MEDIUM: 0, LOW: 0 }, nFind = 0, nDone = 0;
+  D.issues.forEach(function (s) {
+    s.findings.forEach(function (f) {
+      if (f.resolved) { nDone++; return; }
+      tally[f.sev]++;
+      nFind++;
+    });
+  });
+  var tallyEl = document.getElementById('tally');
+  tallyEl.appendChild(el('span', null, '問題 '));
+  tallyEl.appendChild(el('b', null, String(D.issues.length)));
+  tallyEl.appendChild(el('span', null, ' / 未対応の指摘 '));
+  tallyEl.appendChild(el('b', null, String(nFind)));
+  ['HIGH', 'MEDIUM', 'LOW'].forEach(function (s) {
+    var w = el('span');
+    w.appendChild(el('span', 'sev ' + s, s));
+    w.appendChild(document.createTextNode(' '));
+    w.appendChild(el('b', null, String(tally[s])));
+    tallyEl.appendChild(w);
+  });
+  if (nDone) {
+    tallyEl.appendChild(el('span', null, '/ 対応済み '));
+    tallyEl.appendChild(el('b', null, String(nDone)));
+  }
+
+  var m = D.meta;
+  /* 出典は meta.sources に、指摘の接頭辞ごとに 1 つ書く */
+  document.getElementById('meta').textContent = '出典: ' + (m.sources || []).map(function (s) {
+    var when = [s.revision, s.date].filter(Boolean).join('、');
+    return s.prefix + ' で始まる指摘は' + s.label + (when || s.note ? '(' + when + (s.note ? (when ? '。' : '') + s.note : '') + ')' : '');
+  }).join('、');
+
+  function findingChip(f) {
+    var c = el('button', 'chip ' + f.sev + (f.resolved ? ' done' : ''), f.id);
+    c.type = 'button';
+    c.dataset.id = f.id;
+    c.addEventListener('click', function (ev) { ev.stopPropagation(); openFinding(f.id); });
+    c.addEventListener('mouseenter', function () { showTip(c, f); });
+    c.addEventListener('mouseleave', hideTip);
+    c.addEventListener('focus', function () { showTip(c, f); });
+    c.addEventListener('blur', hideTip);
+    return c;
+  }
+
+  function categoryOf(s) {
+    for (var i = 0; i < D.categories.length; i++) if (D.categories[i].key === s.category) return D.categories[i];
+    return null;
+  }
+
+  function scopeOf(key) {
+    for (var i = 0; i < D.scopes.length; i++) if (D.scopes[i].key === key) return D.scopes[i];
+    return null;
+  }
+
+  /* ---- 一覧。範囲ごとに tbody を分けてタブで切り替え、カテゴリごとに見出し行で区切る ---- */
+  var table = document.getElementById('board');
+  var tabsEl = document.getElementById('tabs');
+  var scopeDesc = document.getElementById('scope-desc');
+  var bodies = {}, tabs = {};
+  var board;
+  D.scopes.forEach(function (sc) {
+    board = el('tbody');
+    board.id = 'scope-' + sc.key;
+    board.setAttribute('role', 'tabpanel');
+    bodies[sc.key] = board;
+    table.appendChild(board);
+
+    var nIssue = 0;
+    D.categories.forEach(function (c) {
+      if (c.scope !== sc.key) return;
+      var issues = D.issues.filter(function (s) { return s.category === c.key; });
+      nIssue += issues.length;
+      addCategory(c, issues);
+    });
+
+    var t = el('button', 'tab', sc.name);
+    t.type = 'button';
+    t.setAttribute('role', 'tab');
+    t.setAttribute('aria-controls', board.id);
+    t.appendChild(el('span', 'tab-count', nIssue ? String(nIssue) : '未調査'));
+    t.addEventListener('click', function () { selectScope(sc.key); });
+    tabs[sc.key] = t;
+    tabsEl.appendChild(t);
+  });
+
+  function selectScope(key) {
+    if (!bodies[key]) key = D.scopes[0].key;
+    D.scopes.forEach(function (sc) {
+      bodies[sc.key].hidden = sc.key !== key;
+      tabs[sc.key].setAttribute('aria-selected', sc.key === key ? 'true' : 'false');
+    });
+    scopeDesc.textContent = scopeOf(key).desc;
+    /* 未調査の行しかない範囲では、列の見出しが中身と合わないので出さない */
+    table.tHead.hidden = !bodies[key].querySelector('tr[data-key]');
+    /* 再読み込みや共有で同じタブを開けるよう、範囲は URL に残す */
+    if (location.hash.slice(1) !== key) history.replaceState(null, '', '#' + key);
+  }
+  /* 問題の詳細から別の範囲の問題を開いたとき、背面の一覧もそのタブに合わせる */
+  function showScopeOfIssue(s) {
+    var c = categoryOf(s);
+    if (c && bodies[c.scope].hidden) selectScope(c.scope);
+  }
+  selectScope(location.hash.slice(1));
+  window.addEventListener('hashchange', function () { selectScope(location.hash.slice(1)); });
+
+  function addPlaceholder(c) {
+    var tr = el('tr', 'ph-row');
+    var td = el('td');
+    td.colSpan = 5;
+    td.appendChild(c.checkedAt
+      ? el('div', 'ph-badge checked', '問題なし(' + c.checkedAt + ' に確認)')
+      : el('div', 'ph-badge', '未調査'));
+    var ul = el('ul', 'ph-points');
+    (c.points || []).forEach(function (p) { ul.appendChild(el('li', null, p)); });
+    td.appendChild(ul);
+    if (c.refs) {
+      td.appendChild(el('div', 'ph-refs',
+        '手がかり: ' + c.refs.join('・')));
+    }
+    tr.appendChild(td);
+    board.appendChild(tr);
+  }
+
+  function addCategory(c, issues) {
+    var nF = 0, worst = null;
+    issues.forEach(function (s) {
+      nF += openFindings(s).length;
+      var w = worstOf(s);
+      if (w != null && (worst == null || SEV_RANK[w] < SEV_RANK[worst])) worst = w;
+    });
+    var hr = el('tr', 'cat-row');
+    var th = el('th');
+    th.colSpan = 5;
+    th.scope = 'rowgroup';
+    th.appendChild(el('span', 'cat-name', c.name));
+    th.appendChild(el('span', 'cat-desc', c.desc));
+    if (issues.length) {
+      var cnt = el('span', 'cat-count', '問題 ' + issues.length + ' / 未対応の指摘 ' + nF);
+      if (worst) {
+        cnt.appendChild(document.createTextNode(' / 最大 '));
+        cnt.appendChild(el('span', 'sev ' + worst, worst));
+      }
+      th.appendChild(cnt);
+    }
+    hr.appendChild(th);
+    board.appendChild(hr);
+    if (issues.length) issues.forEach(addIssueRow); else addPlaceholder(c);
+  }
+
+  function addIssueRow(s) {
+    var tr = el('tr', 'worst-' + (worstOf(s) || 'none'));
+    tr.dataset.key = s.key;
+    tr.tabIndex = 0;
+    tr.setAttribute('role', 'button');
+
+    var tdIssue = el('td', 'c-issue');
+    var head = el('div', 'issue-head');
+    head.appendChild(el('span', 'issue-key', s.key));
+    head.appendChild(el('span', 'issue-title', s.title));
+    tdIssue.appendChild(head);
+    tr.appendChild(tdIssue);
+
+    tr.appendChild(el('td', 'c-effect', s.effect));
+    tr.appendChild(el('td', 'c-approach', s.approach));
+
+    var tdFind = el('td', 'c-find');
+    var chips = el('div', 'chips');
+    s.findings.slice().sort(bySev).forEach(function (f) { chips.appendChild(findingChip(f)); });
+    tdFind.appendChild(chips);
+    tr.appendChild(tdFind);
+
+    tr.appendChild(el('td', 'c-scope', s.scope));
+
+    tr.addEventListener('click', function () { openIssue(s.key); });
+    tr.addEventListener('keydown', function (ev) {
+      if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); openIssue(s.key); }
+    });
+    board.appendChild(tr);
+  }
+
+  /* ---- ホバーの覗き見 ---- */
+  var tip = document.getElementById('tip');
+  function showTip(anchor, f) {
+    tip.textContent = '';
+    tip.appendChild(el('b', null, f.id + (f.resolved ? '(対応済み)' : '') + ' — ' + f.title));
+    tip.appendChild(document.createTextNode(f.cond));
+    tip.hidden = false;
+    var r = anchor.getBoundingClientRect();
+    var left = Math.min(r.left + window.pageXOffset, document.documentElement.clientWidth - tip.offsetWidth - 12);
+    tip.style.top = (r.bottom + window.pageYOffset + 6) + 'px';
+    tip.style.left = Math.max(8, left) + 'px';
+  }
+  function hideTip() { tip.hidden = true; }
+
+  /* ---- 詳細 ---- */
+  var sheet = document.getElementById('sheet');
+  var sTitle = document.getElementById('sheet-title');
+  var sSub = document.getElementById('sheet-sub');
+  var sBody = document.getElementById('sheet-body');
+
+  function clearMarks() {
+    Array.prototype.forEach.call(document.querySelectorAll('.chip[aria-current], tr[aria-current]'), function (n) {
+      n.removeAttribute('aria-current');
+    });
+  }
+  function openSheet() {
+    hideTip();
+    if (!sheet.open) {
+      if (sheet.showModal) sheet.showModal(); else sheet.setAttribute('open', '');
+    }
+    sheet.scrollTop = 0;
+  }
+  function closeSheet() {
+    if (sheet.close && sheet.open) sheet.close(); else sheet.removeAttribute('open');
+  }
+  /* Esc も閉じるボタンも close に集まるので、印の解除はここだけで足りる */
+  sheet.addEventListener('close', clearMarks);
+  document.getElementById('sheet-close').addEventListener('click', closeSheet);
+
+  /* 補足パネル。詳細と同じ見せ方で、中身は固定 */
+  var extra = document.getElementById('extra');
+  document.getElementById('open-extra').addEventListener('click', function () {
+    hideTip();
+    if (extra.showModal) extra.showModal(); else extra.setAttribute('open', '');
+  });
+  function closeExtra() {
+    if (extra.close && extra.open) extra.close(); else extra.removeAttribute('open');
+  }
+  document.getElementById('extra-close').addEventListener('click', closeExtra);
+  extra.addEventListener('click', function (e) { if (e.target === extra) closeExtra(); });
+  /* 覆いを押しても閉じる。中身の上での押下は対象外 */
+  sheet.addEventListener('click', function (e) { if (e.target === sheet) closeSheet(); });
+
+  function issueLink(key, text) {
+    var b = el('button', 'link', text);
+    b.type = 'button';
+    b.addEventListener('click', function () { openIssue(key); });
+    return b;
+  }
+
+  /* 列は自分の指摘のあとに、この問題の対策が効く他の問題の指摘を並べる */
+  function matrixColumns(s) {
+    var cols = s.findings.slice().sort(bySev);
+    var seen = {};
+    cols.forEach(function (f) { seen[f.id] = 1; });
+    var ext = [];
+    s.measures.forEach(function (mz) {
+      (mz.fixes || []).concat(mz.reduces || []).forEach(function (id) {
+        if (seen[id]) return;
+        seen[id] = 1;
+        ext.push(findingIndex[id]);
+      });
+    });
+    return cols.concat(ext.sort(bySev));
+  }
+
+  function buildMatrix(s) {
+    var cols = matrixColumns(s);
+    var wrap = el('div', 'mx-scroll');
+    var t = el('table', 'mx');
+    var thead = el('thead');
+    var hr = el('tr');
+    hr.appendChild(el('th', null, ''));
+    cols.forEach(function (f) {
+      var isExt = owner[f.id] !== s.key;
+      var th = el('th', 'mx-f' + (isExt ? ' ext' : ''));
+      th.appendChild(findingChip(f));
+      if (isExt) th.appendChild(el('span', 'mx-from', '問題 ' + owner[f.id]));
+      if (f.resolved) th.appendChild(el('span', 'mx-from', '対応済み'));
+      hr.appendChild(th);
+    });
+    thead.appendChild(hr);
+    t.appendChild(thead);
+
+    var tbody = el('tbody');
+    s.measures.forEach(function (mz, i) {
+      var tr = el('tr');
+      var td = el('td');
+      var box = el('div', 'mx-m');
+      box.appendChild(el('span', 'mx-n', String(i + 1)));
+      var inner = el('div');
+      inner.appendChild(el('span', 'opt-label', mz.label));
+      if (mz.quick) inner.appendChild(el('span', 'opt-badge', '先行して入れられる'));
+      if (mz.prevent) inner.appendChild(el('span', 'opt-badge prevent', '再発防止'));
+      if (mz.body) inner.appendChild(el('div', 'opt-body', mz.body));
+      box.appendChild(inner);
+      td.appendChild(box);
+      tr.appendChild(td);
+
+      if (mz.prevent) {
+        var p = el('td', 'mx-prevent', '既存の指摘ではなく、同じ種類の問題が増えるのを防ぐ');
+        p.colSpan = cols.length;
+        tr.appendChild(p);
+      } else {
+        cols.forEach(function (f) {
+          var e = effectOf(mz, f.id);
+          var isExt = owner[f.id] !== s.key;
+          var c = el('td', 'mx-c' + (e === 'reduce' ? ' reduce' : '') + (isExt ? ' ext' : ''),
+            e === 'fix' ? '●' : e === 'reduce' ? '○' : '');
+          if (e) c.title = f.id + ' を' + (e === 'fix' ? '解消する' : '軽減する(単独では残る)');
+          tr.appendChild(c);
+        });
+      }
+      tbody.appendChild(tr);
+    });
+    t.appendChild(tbody);
+    wrap.appendChild(t);
+    return wrap;
+  }
+
+  function openIssue(key) {
+    var s = issueIndex[key];
+    if (!s) return;
+    clearMarks();
+    showScopeOfIssue(s);
+    var row = document.querySelector('tr[data-key="' + key + '"]');
+    if (row) row.setAttribute('aria-current', 'true');
+
+    sTitle.textContent = s.key + '. ' + s.title;
+    sSub.textContent = scopeOf(categoryOf(s).scope).name + ' › ' + categoryOf(s).name + ' / 規模 ' + s.scope + (s.scopeNote ? '(' + s.scopeNote + ')' : '') +
+      ' / 指摘 ' + s.findings.length + ' 件' +
+      (s.findings.length > openFindings(s).length ? '(うち対応済み ' + (s.findings.length - openFindings(s).length) + ' 件)' : '') +
+      ' / 対策 ' + s.measures.length + ' 件';
+    sBody.textContent = '';
+
+    var cols = el('div', 'cols');
+    var left = el('div');
+    left.appendChild(el('h3', null, '原因'));
+    left.appendChild(el('p', null, s.cause));
+    cols.appendChild(left);
+    var right = el('div');
+    right.appendChild(el('h3', null, '影響'));
+    right.appendChild(el('p', null, s.impact));
+    cols.appendChild(right);
+    sBody.appendChild(cols);
+
+    if (s.background) {
+      sBody.appendChild(el('h3', null, '使い道と経緯'));
+      s.background.forEach(function (t, i) {
+        var bp = el('p', null, t);
+        if (i) bp.style.marginTop = '6px';
+        sBody.appendChild(bp);
+      });
+    }
+
+    sBody.appendChild(el('h3', null, '指摘'));
+    var ul = el('ul', 'f-list');
+    s.findings.slice().sort(bySev).forEach(function (f) {
+      var li = el('li');
+      li.appendChild(findingChip(f));
+      var d = el('div');
+      var t = el('div', 'f-t', f.title);
+      if (f.resolved) t.appendChild(el('span', 'done-badge', '対応済み'));
+      d.appendChild(t);
+      d.appendChild(el('div', 'f-c', f.cond));
+      li.appendChild(d);
+      ul.appendChild(li);
+    });
+    sBody.appendChild(ul);
+
+    sBody.appendChild(el('h3', null, '対策と、効く指摘'));
+    sBody.appendChild(buildMatrix(s));
+    var lg = el('div', 'mx-legend');
+    lg.appendChild(el('span', null, '● 単独で解消する'));
+    lg.appendChild(el('span', null, '○ 軽減する(単独では残る)'));
+    lg.appendChild(el('span', null, '灰色の列は他の問題に属する指摘'));
+    sBody.appendChild(lg);
+
+    var lower = el('div', 'cols');
+    var l2 = el('div');
+    if (s.note) l2.appendChild(el('div', 'sheet-note', s.note));
+    lower.appendChild(l2);
+    var memo = el('div', 'memo');
+    var lb = el('label', null, 'メモ');
+    lb.setAttribute('for', 'memo-field');
+    var ta = el('textarea');
+    ta.id = 'memo-field';
+    ta.placeholder = '採用する対策、懸念、担当など';
+    ta.value = memos[s.key] || '';
+    ta.addEventListener('input', function () { saveMemo(s.key, ta.value); });
+    memo.appendChild(lb);
+    memo.appendChild(ta);
+    lower.appendChild(memo);
+    sBody.appendChild(lower);
+
+    openSheet();
+  }
+
+  function openFinding(id) {
+    var f = findingIndex[id];
+    if (!f) return;
+    clearMarks();
+    Array.prototype.forEach.call(document.querySelectorAll('.chip[data-id="' + id + '"]'), function (c) {
+      c.setAttribute('aria-current', 'true');
+    });
+    sTitle.textContent = id + ' — ' + f.title;
+    sSub.textContent = '';
+    sSub.appendChild(el('span', 'sev ' + f.sev, f.sev));
+    if (f.sevNote) sSub.appendChild(document.createTextNode(' ' + f.sevNote));
+    if (f.resolved) sSub.appendChild(el('span', 'done-badge', '対応済み'));
+    sBody.textContent = '';
+
+    if (f.resolved) {
+      sBody.appendChild(el('h3', null, '対応'));
+      sBody.appendChild(el('p', null, f.resolved.by + ' で対応(' + f.resolved.checkedAt + ' で確認)。' + f.resolved.note));
+    }
+
+    sBody.appendChild(el('h3', null, '属する問題'));
+    var op = el('p');
+    var o = issueIndex[owner[id]];
+    op.appendChild(issueLink(o.key, o.key + '. ' + o.title));
+    sBody.appendChild(op);
+
+    sBody.appendChild(el('h3', null, '出典'));
+    sBody.appendChild(el('p', null, (f.source || '') +
+      (f.alsoFound ? '。別の調査でも ' + f.alsoFound + ' として同じ指摘があった' : '')));
+
+    sBody.appendChild(el('h3', null, '誰が、どういう条件で'));
+    sBody.appendChild(el('p', null, f.cond));
+
+    sBody.appendChild(el('h3', null, '成立させられる立場'));
+    sBody.appendChild(el('p', null, f.zones.map(zoneName).join(' / ')));
+
+    sBody.appendChild(el('h3', null, '該当箇所'));
+    var w = el('p');
+    w.appendChild(el('code', null, f.where));
+    sBody.appendChild(w);
+
+    sBody.appendChild(el('h3', null, '効く対策'));
+    var refs = (measuresFor[id] || []).slice().sort(function (a, b) { return (b.fixes ? 1 : 0) - (a.fixes ? 1 : 0); });
+    var ul = el('ul', 'm-list');
+    refs.forEach(function (r) {
+      var li = el('li');
+      li.appendChild(el('span', null, r.fixes ? '●' : '○'));
+      li.appendChild(el('span', 'm-ref', r.issue.key + '-' + r.n));
+      li.appendChild(issueLink(r.issue.key, r.measure.label));
+      ul.appendChild(li);
+    });
+    sBody.appendChild(ul);
+    if (!refs.some(function (r) { return r.fixes; })) {
+      sBody.appendChild(el('div', 'warn-note', '単独で解消する対策はなく、組み合わせて対処する'));
+    }
+    openSheet();
+  }
+
+  /* ---- 補足 ---- */
+  var ql = document.getElementById('questions');
+  D.openQuestions.forEach(function (q) { ql.appendChild(el('li', null, q)); });
+  var ne = document.getElementById('not-examined');
+  D.notExamined.forEach(function (q) { ne.appendChild(el('li', null, q)); });
+  var ex = document.getElementById('excluded');
+  D.excluded.forEach(function (e) {
+    var row = el('div', 'ex-row');
+    row.appendChild(el('dt', null, e.ids));
+    row.appendChild(el('dd', null, e.reason));
+    ex.appendChild(row);
+  });
+
+  var gl = document.getElementById('memo-global');
+  gl.value = memos.__global || '';
+  gl.addEventListener('input', function () { saveMemo('__global', gl.value); });
+
+  /* ---- 書き出し ---- */
+  var dlg = document.getElementById('dlg');
+  var dlgText = document.getElementById('dlg-text');
+  function buildMarkdown() {
+    var out = ['# ' + TITLE + ' — メモ', ''];
+    out.push('書き出し ' + new Date().toISOString().slice(0, 10));
+    out.push('');
+    var any = false;
+    D.issues.forEach(function (s) {
+      var v = (memos[s.key] || '').trim();
+      if (!v) return;
+      any = true;
+      out.push('## ' + s.key + '. ' + s.title, '', v, '');
+    });
+    var g = (memos.__global || '').trim();
+    if (g) { any = true; out.push('## 全体', '', g, ''); }
+    if (!any) out.push('(メモは空です)');
+    return out.join('\n');
+  }
+  function copy(t) {
+    if (navigator.clipboard && navigator.clipboard.writeText) return navigator.clipboard.writeText(t);
+    return Promise.reject();
+  }
+  document.getElementById('export').addEventListener('click', function () {
+    var md = buildMarkdown();
+    dlgText.value = md;
+    copy(md).then(function () {
+      document.getElementById('dlg-msg').textContent = 'メモを Markdown にしました。クリップボードにコピーしています。';
+    }, function () {
+      document.getElementById('dlg-msg').textContent = 'メモを Markdown にしました。下の内容を選択してコピーしてください。';
+    });
+    if (dlg.showModal) dlg.showModal(); else dlg.setAttribute('open', '');
+  });
+  document.getElementById('dlg-copy').addEventListener('click', function () {
+    copy(dlgText.value).then(function () {
+      document.getElementById('dlg-msg').textContent = 'コピーしました。';
+    }, function () { dlgText.select(); });
+  });
+  document.getElementById('dlg-close').addEventListener('click', function () {
+    if (dlg.close) dlg.close(); else dlg.removeAttribute('open');
+  });
+})();
+</script>
+</body>
+</html>
