@@ -1,6 +1,6 @@
 ---
 name: security-audit
-description: プロダクト全体のセキュリティ検査を観点ごとに進め、結果を 1 枚の HTML 資料(security-review.html + security-review.data.js)にまとめる。コードのスキャン、個人情報の流れ、業務ロジックの悪用、CI/CD・供給経路、ブラウザの防御、基盤(IaC)、クラウドの設定、聞き取りまでを扱う。user-invocation only。
+description: プロダクト全体のセキュリティ検査を観点ごとに進め、結果を 1 枚で完結する HTML 資料(security-review.html)にまとめる。コードのスキャン、個人情報の流れ、業務ロジックの悪用、CI/CD・供給経路、ブラウザの防御、基盤(IaC)、クラウドの設定、聞き取りまでを扱う。user-invocation only。
 disable-model-invocation: true
 ---
 
@@ -8,10 +8,10 @@ disable-model-invocation: true
 
 プロダクトのセキュリティを、範囲(タブ)と小分類の枠で一通り洗い、問題・指摘・対策を 1 枚の HTML にまとめる。
 
-資料は次の 2 つのファイルでできている。
+資料は security-review.html の 1 ファイルで完結する。ファイルを開くだけで読め、そのまま人に渡せる。
 
-- **security-review.html**: 表示側。中身に依存しないので、テンプレートをそのまま使う
-- **security-review.data.js**: 中身。調査のたびにここだけを書き足す
+- **`<script id="scan-data">` の中**: 中身(`window.SCAN`)。調査のたびにここだけを書き足す
+- **それ以外**: 表示側。中身に依存しないので、テンプレートのまま使う
 
 1 回で終わらせる作業ではない。観点を 1 つずつ進め、そのたびに資料へ反映して commit する。数日にまたがる前提で進める。
 
@@ -19,15 +19,14 @@ disable-model-invocation: true
 
 | ファイル | 中身 |
 |---|---|
-| `assets/security-review.html` | 表示側のテンプレート |
-| `assets/security-review.data.js` | データの骨組み(範囲・小分類・攻撃者の立ち位置の初期値と、問題の書き方の例) |
+| `assets/security-review.html` | 資料のテンプレート。`scan-data` にデータの骨組み(範囲・小分類・攻撃者の立ち位置の初期値と、問題の書き方の例)が入っている |
 | `references/phases.md` | 観点ごとの調べ方とコマンド。各観点に入る前に、その節を読む |
-| `scripts/validate.mjs` | データの整合の検査。`node <skill>/scripts/validate.mjs <data.js>` |
+| `scripts/validate.mjs` | データの整合の検査。`node <skill>/scripts/validate.mjs <html>` |
 
 ## 始め方
 
 1. 置き場所(例: `docs/security/`)とブランチを利用者と決める
-2. `assets/` の 2 ファイルをコピーし、`meta.title` と `meta.storeKey` をプロダクトに合わせる
+2. `assets/security-review.html` をコピーし、`scan-data` の `meta.title` と `meta.storeKey` をプロダクトに合わせる
 3. 範囲と小分類を、プロダクトに合わせて足し引きする。利用者に見せて合意してから調査に入る。利用者が範囲から外したいもの(ISMS など)は外す
 4. 攻撃者の立ち位置(zones)も、プロダクトの利用者の種類に合わせて直す。たとえば LINE のユーザー、現場の作業員、委託先などを足す
 5. 既存の資料(過去のギャップ分析、顧客向けの概要シート、想定問答集)があれば読み、小分類の `refs` に手がかりとして書く
@@ -78,9 +77,8 @@ disable-model-invocation: true
 
 資料を変えたら、次の 2 つを行う。
 
-1. **整合の検査**: `node <skill>/scripts/validate.mjs <data.js>` を実行する。指摘 ID の重複、存在しない指摘を指す対策、どの対策にも結び付いていない指摘、記号の形を検査する
-2. **表示の確認**: ローカルで配信し(`python3 -m http.server`)、ブラウザで開いて表示が崩れないことを見る
-   - 同じポートで開き直すと、古い data.js がキャッシュから読まれることがある。ポートを変えるか、`fetch(url, {cache: 'reload'})` してから再読み込みする
+1. **整合の検査**: `node <skill>/scripts/validate.mjs <html>` を実行する。指摘 ID の重複、存在しない指摘を指す対策、どの対策にも結び付いていない指摘、記号の形を検査する
+2. **表示の確認**: ブラウザで開いて表示が崩れないことを見る。Playwright は file:// を開けないので、ローカルで配信する(`python3 -m http.server`)
    - Playwright のスクリーンショットは、作業ディレクトリに `.playwright-mcp/` を作る。確認の後に消す
 
 ## commit と共有

@@ -1,16 +1,30 @@
 #!/usr/bin/env node
-// security-review.data.js の整合を検査する。使い方: node validate.mjs <data.js のパス>
+// security-review.html に埋め込んだデータの整合を検査する。
+// 使い方: node validate.mjs <security-review.html> [--unexamined]
+// --unexamined を付けると、問題も checkedAt もない(「未調査」のままの)小分類を一覧する
 import { readFileSync } from 'fs';
 import vm from 'vm';
 
 const path = process.argv[2];
 if (!path) {
-  console.error('usage: node validate.mjs <security-review.data.js>');
+  console.error('usage: node validate.mjs <security-review.html> [--unexamined]');
+  process.exit(2);
+}
+const html = readFileSync(path, 'utf8');
+const m = html.match(/<script id="scan-data">([\s\S]*?)<\/script>/);
+if (!m) {
+  console.error('<script id="scan-data"> が見つからない');
   process.exit(2);
 }
 const ctx = { window: {} };
-vm.runInNewContext(readFileSync(path, 'utf8'), ctx);
+vm.runInNewContext(m[1], ctx);
 const D = ctx.window.SCAN;
+
+if (process.argv.includes('--unexamined')) {
+  const used = new Set(D.issues.map((i) => i.category));
+  for (const c of D.categories) if (!used.has(c.key) && !c.checkedAt) console.log(c.scope, c.key, c.name);
+  process.exit(0);
+}
 const errors = [];
 const err = (m) => errors.push(m);
 

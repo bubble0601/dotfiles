@@ -143,7 +143,7 @@ aws cloudtrail lookup-events --lookup-attributes AttributeKey=AccessKeyId,Attrib
 
 - 問題のない小分類が「未調査」のまま残っていないかを一覧する
   ```sh
-  node -e "global.window={};require('./security-review.data.js');const D=window.SCAN;const u=new Set(D.issues.map(i=>i.category));D.categories.filter(c=>!u.has(c.key)&&!c.checkedAt).forEach(c=>console.log(c.scope,c.key,c.name))"
+  node <skill>/scripts/validate.mjs security-review.html --unexamined
   ```
 - 調べて問題がなければ、消さずに `checkedAt` を付けて「問題なし」と表示し、points に調べた結果を書く
 
