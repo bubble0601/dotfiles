@@ -1,0 +1,64 @@
+  <section class="panel">
+    <h2>追加した設定</h2>
+    <p class="lead">従業員区分の休日労働セクションに「法定休日日数の決め方」を追加した。休日制度が変形で、「休日カウントをしない」にチェックが無いときだけ出る。</p>
+    <div class="scroll">
+      <table class="data">
+        <thead><tr><th>決め方</th><th>締め期間ごとの日数</th><th>初期値</th></tr></thead>
+        <tbody>
+          <tr><td>固定</td><td>どの締め期間も同じ日数</td><td>4 日</td></tr>
+          <tr><td>曜日の数で決める</td><td>「数える曜日」が 4 回以下なら 4 回の日数、5 回以上なら 5 回の日数</td><td>木曜日 ・ 4 日 / 5 日</td></tr>
+          <tr><td>期間の日数で決める</td><td>締め期間が 28 日以下 / 29 日 / 30 日 / 31 日以上ごとの日数</td><td>4 / 4 / 4 / 5 日</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <ul class="plain">
+      <li>日数は 1〜28 日で入れる。空・範囲外は保存できない。1〜3 日は「4 日未満は労働基準法の変形休日制(4 週 4 日以上)を下回ります」と警告するが、保存はできる</li>
+      <li>給与計算の法定休日の判定では、交替勤務のあり・なしの両方で、締め期間ごとに決めた日数を確保する。交替勤務ありは「日数 × 24 時間」を確保する</li>
+      <li>休日制度の表示名を「変形（月4日休日を取得）」から「変形（締め期間ごとに休日を取得）」に変えた</li>
+      <li>共通の部品として、整数の入力欄に「エラーが無いときだけ欄の下に警告を出す」機能を、選択欄に「選んだ選択肢の説明を欄の下に出す」機能を追加した</li>
+    </ul>
+  </section>
+  <section class="panel">
+    <h2>Before / After</h2>
+    <p class="lead">従業員区分の休日労働セクション</p>
+    <div class="grid2">
+      <div class="box">
+        <span class="tag before">Before</span>
+        <div class="form-mock" aria-label="変更前のフォーム">
+          <div class="fm-check"><span class="cb"></span>休日カウントをしない</div>
+          <div class="fm-field"><div class="fm-label">休日制度</div><div class="fm-input">変形（月4日休日を取得）<span class="chev">▾</span></div></div>
+          <div class="fm-field"><div class="fm-label">休日労働の割増率</div><div class="fm-input">35<span class="unit">%</span></div></div>
+        </div>
+        <p class="note">変形を選ぶと、どの締め期間も 4 日で判定する。日数を変える手段が無い。</p>
+      </div>
+      <div class="box">
+        <span class="tag after">After</span>
+        <div class="form-mock" aria-label="変更後のフォーム(曜日の数で決める を選んだ状態)">
+          <div class="fm-check"><span class="cb"></span>休日カウントをしない</div>
+          <div class="fm-field"><div class="fm-label">休日制度</div><div class="fm-input">変形（締め期間ごとに休日を取得）<span class="chev">▾</span></div></div>
+          <div class="fm-new" style="display:grid;gap:14px">
+            <div class="fm-field"><div class="fm-label">法定休日日数の決め方</div><div class="fm-input">曜日の数で決める<span class="chev">▾</span></div><div class="fm-desc">締め期間に選んだ曜日が何回あるかで、確保する法定休日の日数を決めます</div></div>
+            <div class="fm-field"><div class="fm-label">数える曜日</div><div class="fm-input">木曜日<span class="chev">▾</span></div></div>
+            <div class="fm-row">
+              <div class="fm-field"><div class="fm-label">木曜日が 4 回の締め期間</div><div class="fm-input">4<span class="unit">日</span></div></div>
+              <div class="fm-field"><div class="fm-label">木曜日が 5 回の締め期間</div><div class="fm-input">5<span class="unit">日</span></div></div>
+            </div>
+          </div>
+          <div class="fm-field"><div class="fm-label">休日労働の割増率</div><div class="fm-input">35<span class="unit">%</span></div></div>
+        </div>
+        <p class="note">点線の部分が追加した欄。決め方を変えると、日数の欄が 1 つ(固定)・曜日と 2 つ(曜日の数)・4 つ(期間の日数)に切り替わる。</p>
+      </div>
+    </div>
+
+  </section>
+  <section class="panel">
+    <h2>締め期間ごとに必要になる法定休日の日数</h2>
+    <p class="lead">2026 年・月末締め・初期値の場合</p>
+    <div class="scroll">
+      <table class="data">
+        <thead><tr><th>締め期間</th><th class="num">日数</th><th class="num">木曜日</th><th class="num">Before</th><th class="num">After: 固定</th><th class="num">After: 曜日の数</th><th class="num">After: 期間の日数</th></tr></thead>
+        <tbody id="yearTable"></tbody>
+      </table>
+    </div>
+    <p class="note">色付きの行は、決め方によって必要な日数が 4 日から 5 日に増える月。休日にできる日(勤務の無い日)が足りない期間は、期間の最終日から遡って勤務した日も法定休日にするので、その分が休日労働の割増の対象になる。</p>
+  </section>

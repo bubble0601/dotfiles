@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{TITLE}}</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* 1 カラムの読み物 + 末尾にチェックリスト。管理画面と同じ暖色グレーの地に白パネル、ブランド色は操作と強調だけ */
+:root {
+  --surface: #f7f3f2;
+  --panel: #ffffff;
+  --ink: #404040;
+  --muted: #6b6b6b;
+  --line: #e5e1df;
+  --brand: #c25a58;
+  --brand-soft: #fbeceb;
+  --ok: #2f7d4f;
+  --ok-soft: #e6f3eb;
+  --ng: #b3261e;
+  --ng-soft: #fbe9e7;
+  --warn: #8a5a00;
+  --warn-soft: #fdf3dc;
+  --code-bg: #f3efed;
+  --font-body: ui-sans-serif, system-ui, -apple-system, "Hiragino Sans", "Yu Gothic UI", sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+/* 管理画面と同じくライトのみ。ビューアがダークでも明るい配色で表示する */
+:root { color-scheme: light; }
+* { box-sizing: border-box; }
+body { background: var(--surface); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.7; }
+.wrap { max-width: 1400px; margin: 0 auto; padding-block: 32px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 24px; }
+header.top { display: grid; gap: 8px; }
+.eyebrow { font-size: 12px; letter-spacing: .08em; color: var(--muted); }
+h1 { font-size: 28px; line-height: 1.35; margin: 0; text-wrap: balance; }
+h2 { font-size: 20px; margin: 0; text-wrap: balance; }
+h3 { font-size: 15px; margin: 0; }
+p { margin: 0; }
+.meta { display: flex; flex-wrap: wrap; gap: 8px 16px; color: var(--muted); font-size: 13px; }
+.meta a { color: var(--brand); }
+code { font-family: var(--font-mono); font-size: 12.5px; background: var(--code-bg); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+/* 下線を枠の外へはみ出させると縦スクロールが出るので、線は内側の box-shadow で描く */
+.tabs { display: flex; gap: 2px; overflow-x: auto; overflow-y: hidden; box-shadow: inset 0 -1px 0 var(--line); }
+.tabs button { border: none; border-radius: 0; background: none; padding: 10px 14px; font-size: 14px; color: var(--muted); white-space: nowrap; }
+.tabs button:hover { color: var(--ink); }
+.tabs button[aria-selected="true"] { color: var(--brand); box-shadow: inset 0 -2px 0 var(--brand); font-weight: 600; }
+section.panel { background: var(--panel); border-radius: 8px; padding: 24px; display: grid; gap: 16px; min-width: 0; }
+.lead { color: var(--muted); }
+.tldr { background: var(--brand-soft); border-radius: 8px; padding: 16px 20px; display: grid; gap: 8px; }
+.tabpanel { display: grid; gap: 16px; min-width: 0; }
+/* display を指定した要素は hidden 属性だけでは消えないため */
+[hidden] { display: none !important; }
+section.panel h3 { margin-top: 8px; }
+ul.plain { margin: 0; padding-left: 1.2em; display: grid; gap: 6px; }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+.grid2 > * { min-width: 0; }
+.box { border: 1px solid var(--line); border-radius: 8px; padding: 16px; display: grid; gap: 10px; align-content: start; }
+.label { font-size: 12px; letter-spacing: .06em; color: var(--muted); }
+.tag { display: inline-block; font-size: 12px; border-radius: 999px; padding: 1px 10px; white-space: nowrap; }
+.tag.before { background: var(--code-bg); color: var(--muted); }
+.tag.after { background: var(--brand-soft); color: var(--brand); }
+.tag.ok { background: var(--ok-soft); color: var(--ok); }
+.tag.warn { background: var(--warn-soft); color: var(--warn); }
+.tag.ng { background: var(--ng-soft); color: var(--ng); }
+
+/* フォームの再現(休日労働セクション) */
+.form-mock { display: grid; gap: 14px; border-left: 2px solid var(--line); padding-left: 14px; }
+.fm-field { display: grid; gap: 4px; }
+.fm-label { font-size: 13px; font-weight: 600; }
+.fm-input { border: 1px solid var(--line); border-radius: 6px; padding: 6px 10px; font-size: 13px; background: var(--panel); display: flex; justify-content: space-between; gap: 8px; }
+.fm-input .unit, .fm-input .chev { color: var(--muted); }
+.fm-desc { font-size: 12px; color: var(--muted); }
+.fm-check { display: flex; gap: 8px; align-items: center; font-size: 13px; }
+.fm-check span.cb { width: 14px; height: 14px; border: 1px solid var(--muted); border-radius: 3px; display: inline-block; }
+.fm-new { outline: 2px dashed var(--brand); outline-offset: 4px; border-radius: 6px; }
+.fm-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+
+table.data { border-collapse: collapse; width: 100%; font-size: 13px; font-variant-numeric: tabular-nums; }
+table.data th, table.data td { border-bottom: 1px solid var(--line); padding: 7px 10px; text-align: left; vertical-align: top; }
+table.data th { color: var(--muted); font-weight: 600; font-size: 12px; }
+table.data td.num { text-align: right; }
+table.data tr.diff td { background: var(--brand-soft); }
+.scroll { overflow-x: auto; }
+
+/* チェックリスト */
+.toolbar { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: end; }
+.toolbar .field { display: grid; gap: 4px; }
+.toolbar .actions { margin-left: auto; display: flex; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 8px; }
+.toolbar label { font-size: 12px; color: var(--muted); }
+input[type="text"], input[type="date"], select, textarea { font: inherit; font-size: 14px; color: var(--ink); background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 6px 10px; }
+textarea { width: 100%; min-height: 64px; resize: vertical; }
+input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-visible, summary:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+button { font: inherit; font-size: 13px; border-radius: 6px; padding: 7px 14px; cursor: pointer; border: 1px solid var(--line); background: var(--panel); color: var(--ink); }
+button.primary { background: var(--brand); border-color: var(--brand); color: #fff; }
+.progress { display: flex; gap: 12px; flex-wrap: wrap; font-size: 13px; font-variant-numeric: tabular-nums; }
+.bar { height: 6px; border-radius: 999px; background: var(--line); overflow: hidden; display: flex; }
+.bar i { display: block; height: 100%; }
+.bar i.ok { background: var(--ok); } .bar i.ng { background: var(--ng); }
+.case-scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; }
+table.cases { border-collapse: collapse; width: 100%; min-width: 1240px; font-size: 13px; }
+table.cases th, table.cases td { border-bottom: 1px solid var(--line); border-right: 1px solid var(--line); padding: 8px 10px; text-align: left; vertical-align: top; }
+table.cases th:last-child, table.cases td:last-child { border-right: none; }
+table.cases thead th { position: sticky; top: 0; background: var(--code-bg); color: var(--muted); font-size: 12px; font-weight: 600; z-index: 1; }
+table.cases tr.group th { position: static; background: var(--surface); color: var(--ink); font-size: 13px; font-weight: 700; }
+table.cases tr[data-status="ok"] td { background: var(--ok-soft); }
+table.cases tr[data-status="ng"] td { background: var(--ng-soft); }
+table.cases ol { margin: 0; padding-left: 1.4em; display: grid; gap: 2px; }
+table.cases textarea { min-height: 72px; font-size: 13px; }
+.col-purpose { width: 190px; } .col-pre { width: 210px; } .col-steps { width: 320px; } .col-exp { width: 300px; }
+.col-judge { width: 92px; } .col-comment { width: 210px; }
+.case-note { color: var(--muted); font-size: 12px; margin-top: 6px; }
+.note { color: var(--muted); font-size: 13px; }
+.judge { display: grid; gap: 4px; }
+.judge button { padding: 4px 8px; font-size: 12px; }
+.judge button[aria-pressed="true"].ok { background: var(--ok); border-color: var(--ok); color: #fff; }
+.judge button[aria-pressed="true"].ng { background: var(--ng); border-color: var(--ng); color: #fff; }
+.toast { font-size: 13px; color: var(--ok); min-height: 1.2em; }
+#copyFallback { font-family: var(--font-mono); font-size: 12px; min-height: 160px; }
+@media (prefers-reduced-motion: no-preference) { .case { transition: border-color .15s, background-color .15s; } }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <div class="eyebrow">{{EYEBROW}}</div>
+    <h1>{{HEADLINE}}</h1>
+    <div class="meta">
+      {{META}}
+    </div>
+  </header>
+  <div class="tabs" role="tablist" aria-label="資料の章">
+    <button type="button" role="tab" id="tab-overview" aria-controls="overview" data-tab="overview">概要</button>
+    <button type="button" role="tab" id="tab-feature" aria-controls="feature" data-tab="feature">実装した機能</button>
+    <button type="button" role="tab" id="tab-notes" aria-controls="notes" data-tab="notes">留意事項</button>
+    <button type="button" role="tab" id="tab-cases" aria-controls="cases" data-tab="cases">テストケース</button>
+  </div>
+
+  <div class="tabpanel" id="overview">
+{{OVERVIEW}}
+  </div>
+
+  <div class="tabpanel" id="feature">
+{{FEATURE}}
+  </div>
+
+  <div class="tabpanel" id="notes">
+{{NOTES}}
+  </div>
+
+  <section class="panel" id="cases">
+    <h2>テストケース</h2>
+    <p class="lead">判定とコメントは、このブラウザにだけ保存される。</p>
+    <div class="toolbar">
+      <div class="field"><label for="filterRank">表示</label>
+        <select id="filterRank"><option value="all">すべて</option><option value="todo">未判定だけ</option><option value="ng">NG だけ</option></select>
+      </div>
+      <div class="actions">
+        <span class="toast" id="toast" role="status"></span>
+        <button type="button" id="reset">判定をすべて消す</button>
+        <button type="button" id="copyNg">NG とコメントがあるものだけコピー</button>
+        <button type="button" class="primary" id="copyAll">結果をコピー</button>
+      </div>
+    </div>
+    <div id="fallbackWrap" hidden>
+      <p class="note">クリップボードに書き込めなかったので、下のテキストを選択してコピーしてください。</p>
+      <textarea id="copyFallback" readonly></textarea>
+    </div>
+    <div class="progress" id="progress"></div>
+    <div class="bar" aria-hidden="true"><i class="ok" id="barOk"></i><i class="ng" id="barNg"></i></div>
+    <div class="case-scroll">
+      <table class="cases">
+        <thead><tr><th class="col-purpose">目的</th><th class="col-pre">前提条件</th><th class="col-steps">手順</th><th class="col-exp">期待結果</th><th class="col-judge">判定</th><th class="col-comment">コメント</th></tr></thead>
+        <tbody id="caseList"></tbody>
+      </table>
+    </div>
+  </section>
+</div>
+
+<script>
+// md の目的は「〜ことを確認する」で終わる。チェックリストでは「〜こと」までを出す
+const CASES = {{CASES_JSON}}.map((c) => ({ ...c, purpose: (c.purpose || '').replace(/を確認する。?$/, '') }));
+const STORE_KEY = '{{KEY}}-checklist';
+const RESULT = { ok: 'OK', ng: 'NG' };
+
+function loadState() {
+  try { return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; } catch { return {}; }
+}
+function saveState() {
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch { /* 保存できない環境では画面上だけで保つ */ }
+}
+let state = loadState();
+state.cases = state.cases || {};
+
+{{EXTRA_SCRIPT}}
+
+function el(tag, attrs = {}, text) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+  if (text != null) e.textContent = text;
+  return e;
+}
+function list(items) {
+  const ol = el('ol');
+  items.forEach((t) => ol.appendChild(el('li', {}, t)));
+  return ol;
+}
+
+function render() {
+  const wrap = document.getElementById('caseList');
+  wrap.textContent = '';
+  const filter = document.getElementById('filterRank').value;
+  let lastGroup = null;
+  CASES.forEach((c) => {
+    const s = state.cases[c.id] || {};
+    if (filter === 'todo' && s.status) return;
+    if (filter === 'ng' && s.status !== 'ng') return;
+    if (c.group !== lastGroup) {
+      lastGroup = c.group;
+      const gr = el('tr', { class: 'group' });
+      gr.appendChild(el('th', { colspan: '6', scope: 'colgroup' }, c.group));
+      wrap.appendChild(gr);
+    }
+
+    const row = el('tr', { 'data-status': s.status || '' });
+    const tdJudge = el('td');
+    const tdPurpose = el('td', {}, c.purpose || `${c.screen}・${c.area}`);
+    const tdPre = el('td'); tdPre.appendChild(list(c.pre));
+    const tdSteps = el('td'); tdSteps.appendChild(list(c.steps));
+    const tdExp = el('td'); tdExp.appendChild(list(c.exp));
+    if (c.note) tdExp.appendChild(el('div', { class: 'case-note' }, `備考: ${c.note}`));
+    const tdComment = el('td');
+
+    const judge = el('div', { class: 'judge', role: 'group', 'aria-label': `${c.id} の判定` });
+    for (const key of ['ok', 'ng']) {
+      const b = el('button', { type: 'button', class: key, 'aria-pressed': String(s.status === key) }, RESULT[key]);
+      b.addEventListener('click', () => {
+        const cur = state.cases[c.id] || {};
+        cur.status = cur.status === key ? '' : key;
+        state.cases[c.id] = cur; saveState(); render();
+      });
+      judge.appendChild(b);
+    }
+    tdJudge.appendChild(judge);
+
+    const ta = el('textarea', { id: `comment-${c.id}`, placeholder: 'NG の内容、気づいたことなど', 'aria-label': `${c.id} のコメント` });
+    ta.value = s.comment || '';
+    ta.addEventListener('input', () => {
+      const cur = state.cases[c.id] || {};
+      cur.comment = ta.value; state.cases[c.id] = cur; saveState(); updateProgress();
+    });
+    tdComment.appendChild(ta);
+    [tdPurpose, tdPre, tdSteps, tdExp, tdJudge, tdComment].forEach((td) => row.appendChild(td));
+    wrap.appendChild(row);
+  });
+  if (!wrap.children.length) {
+    const tr = el('tr'); const td = el('td', { colspan: '6', class: 'note' }, '条件に合うテストケースはありません。');
+    tr.appendChild(td); wrap.appendChild(tr);
+  }
+  updateProgress();
+}
+
+function counts() {
+  const r = { ok: 0, ng: 0, todo: 0 };
+  CASES.forEach((c) => { const st = (state.cases[c.id] || {}).status; r[st || 'todo']++; });
+  return r;
+}
+function updateProgress() {
+  const r = counts();
+  const p = document.getElementById('progress');
+  p.textContent = `全 ${CASES.length} 件 ・ OK ${r.ok} ・ NG ${r.ng} ・ 未判定 ${r.todo}`;
+  document.getElementById('barOk').style.width = `${(r.ok / CASES.length) * 100}%`;
+  document.getElementById('barNg').style.width = `${(r.ng / CASES.length) * 100}%`;
+}
+
+function buildText(onlyIssues) {
+  const r = counts();
+  const lines = ['## {{COPY_TITLE}}', ''];
+  lines.push(`- 結果: OK ${r.ok} / NG ${r.ng} / 未判定 ${r.todo}(全 ${CASES.length} 件)`);
+  let lastGroup = null;
+  CASES.forEach((c) => {
+    const s = state.cases[c.id] || {};
+    const comment = (s.comment || '').trim();
+    if (onlyIssues && s.status !== 'ng' && !comment) return;
+    if (c.group !== lastGroup) {
+      lastGroup = c.group;
+      lines.push('', `### ${c.group}`, '');
+    }
+    const mark = s.status === 'ok' ? '[x]' : '[ ]';
+    const label = s.status ? RESULT[s.status] : '未判定';
+    lines.push(`- ${mark} ${label} ${c.purpose || c.screen + '・' + c.area}`);
+    if (comment) comment.split('\n').forEach((l) => lines.push(`  - ${l}`));
+  });
+  return lines.join('\n');
+}
+
+async function copy(onlyIssues) {
+  const text = buildText(onlyIssues);
+  const toast = document.getElementById('toast');
+  const fb = document.getElementById('fallbackWrap');
+  try {
+    await navigator.clipboard.writeText(text);
+    fb.hidden = true;
+    toast.textContent = 'コピーしました';
+  } catch {
+    const ta = document.getElementById('copyFallback');
+    ta.value = text; fb.hidden = false; ta.focus(); ta.select();
+    toast.textContent = '';
+  }
+  setTimeout(() => { toast.textContent = ''; }, 2500);
+}
+
+document.getElementById('filterRank').addEventListener('change', render);
+
+// タブ。開いているタブは #章名 で直接開け、最後に見たタブはこのブラウザに覚える
+const TAB_KEY = '{{KEY}}-tab';
+const tabButtons = [...document.querySelectorAll('.tabs [role="tab"]')];
+const panels = tabButtons.map((b) => document.getElementById(b.dataset.tab));
+panels.forEach((p) => { p.setAttribute('role', 'tabpanel'); p.setAttribute('aria-labelledby', `tab-${p.id}`); });
+function showTab(name) {
+  if (!panels.some((p) => p.id === name)) name = 'overview';
+  tabButtons.forEach((b) => { const on = b.dataset.tab === name; b.setAttribute('aria-selected', String(on)); b.tabIndex = on ? 0 : -1; });
+  panels.forEach((p) => { p.hidden = p.id !== name; });
+  try { localStorage.setItem(TAB_KEY, name); } catch { /* 覚えられなくても表示はできる */ }
+}
+tabButtons.forEach((b, i) => {
+  b.addEventListener('click', () => {
+    showTab(b.dataset.tab);
+    try { history.replaceState(null, '', `#${b.dataset.tab}`); } catch { /* 埋め込み先によっては URL を書き換えられないが、表示は切り替わっている */ }
+  });
+  b.addEventListener('keydown', (e) => {
+    if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+    const next = tabButtons[(i + (e.key === 'ArrowRight' ? 1 : tabButtons.length - 1)) % tabButtons.length];
+    next.focus(); next.click();
+  });
+});
+let initialTab = location.hash.slice(1);
+if (!initialTab) { try { initialTab = localStorage.getItem(TAB_KEY) || ''; } catch { initialTab = ''; } }
+showTab(initialTab);
+document.getElementById('copyAll').addEventListener('click', () => copy(false));
+document.getElementById('copyNg').addEventListener('click', () => copy(true));
+let resetArmed = false;
+document.getElementById('reset').addEventListener('click', (e) => {
+  if (!resetArmed) { resetArmed = true; e.target.textContent = 'もう一度押すと消します'; setTimeout(() => { resetArmed = false; e.target.textContent = '判定をすべて消す'; }, 3000); return; }
+  resetArmed = false; e.target.textContent = '判定をすべて消す';
+  state.cases = {}; saveState(); render();
+});
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+{
+  "title": "変形休日の法定休日日数",
+  "eyebrow": "従業員区分 ・ 給与計算(法定休日の自動判定)",
+  "headline": "変形休日の法定休日日数を、締め期間ごとに決められるようにした",
+  "meta_html": "<span>PR <a href=\"https://github.com/example-org/example-app/pull/1234\">#1234</a></span>",
+  "key": "legal-dayoff",
+  "copy_title": "変形休日の法定休日日数 動作確認結果",
+  "overview": "overview.html",
+  "feature": "feature.html",
+  "notes": "notes.html",
+  "extra_script": "extra.js",
+  "cases": [
+    "cases-screen.json",
+    "cases-downstream.json"
+  ]
+}
