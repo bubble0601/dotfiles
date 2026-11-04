@@ -12,7 +12,7 @@ window.SCAN = {
     title: '{{プロダクト名}} セキュリティ検査',
     // localStorage のキー。資料ごとに変える
     storeKey: '{{project}}-security-review',
-    // 指摘の接頭辞ごとに 1 つ。調査を足すたびに増やす
+    // 指摘の接頭辞ごとに 1 つ。調査を足すたびに増やす。画面には出さない調査の記録
     sources: [
       // { prefix: 'F', label: 'Claude Security による apps/api のスキャン', revision: 'abc1234567', date: '2026-01-01', note: 'effort medium' },
     ],

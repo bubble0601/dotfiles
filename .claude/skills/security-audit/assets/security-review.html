@@ -36,7 +36,7 @@
     font-family: "IBM Plex Mono", ui-monospace, Menlo, monospace;
     font-size: 0.85em; overflow-wrap: anywhere;
   }
-  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 20px; }
+  .wrap { max-width: 1360px; margin: 0 auto; padding: 0 20px; }
   :focus-visible { outline: 2px solid var(--signal); outline-offset: 2px; }
 
   /* ---- 見出し。一覧を押し下げないよう最小限 ---- */
@@ -46,7 +46,6 @@
   .tally { font-size: 13px; color: var(--ink-2); display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
   .tally b { font-family: "IBM Plex Mono", monospace; color: var(--ink); font-weight: 600; }
   .tools { margin-left: auto; display: flex; gap: 6px; }
-  .meta { font-size: 12.5px; color: var(--ink-2); margin: 4px 0 0; }
   .btn {
     appearance: none; font: inherit; font-size: 13px; cursor: pointer;
     background: var(--panel); color: var(--ink); border: 1px solid var(--rule); padding: 4px 11px;
@@ -62,13 +61,23 @@
   .tab:hover { color: var(--ink); }
   .tab[aria-selected="true"] { color: var(--ink); font-weight: 600; border-bottom-color: var(--signal); }
   .tab-count { font-family: "IBM Plex Mono", monospace; font-size: 11.5px; color: var(--ink-2); margin-left: 6px; font-weight: 400; }
-  .scope-desc { font-size: 12.5px; color: var(--ink-2); margin: 8px 0 0; }
+  .scope-line { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 8px 0 0; }
+  .scope-desc { font-size: 12.5px; color: var(--ink-2); margin: 0; }
+  .filters { margin-left: auto; display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--ink-2); }
+  .pill {
+    appearance: none; font: inherit; font-size: 11.5px; font-weight: 600; cursor: pointer;
+    padding: 1px 10px; border-radius: 999px; border: 1px solid var(--rule-firm);
+    background: var(--panel); color: var(--ink-2);
+  }
+  .pill.HIGH[aria-pressed="true"] { color: var(--high); background: var(--high-wash); border-color: var(--high); }
+  .pill.MEDIUM[aria-pressed="true"] { color: var(--medium); background: var(--medium-wash); border-color: var(--medium); }
+  .pill.LOW[aria-pressed="true"] { color: var(--low); background: var(--low-wash); border-color: var(--low); }
 
   /* ---- 一覧 ---- */
   .board-scroll { margin: 8px 0 0; }
   .board {
     width: 100%; border-collapse: collapse; background: var(--panel);
-    border: 1px solid var(--rule-firm); min-width: 900px;
+    border: 1px solid var(--rule-firm); min-width: 1060px;
   }
   .board thead th {
     text-align: left; font-size: 11.5px; font-weight: 600; color: var(--ink-2);
@@ -114,6 +123,17 @@
   .c-effect, .c-approach { width: auto; color: var(--ink-2); }
   .c-find { width: 178px; }
   .c-scope { width: 72px; color: var(--ink-2); font-size: 12.5px; white-space: nowrap; }
+  .c-status { width: 100px; }
+  .c-memo { width: 190px; }
+  .c-status select { font: inherit; font-size: 12.5px; width: 100%; }
+  .c-memo textarea {
+    font: inherit; font-size: 12.5px; line-height: 1.5; width: 100%; min-height: 3.2em;
+    resize: vertical; box-sizing: border-box; padding: 3px 5px;
+  }
+  /* 対応済みにした問題は、深刻度の帯を出さない */
+  .board tbody tr.st-done td.c-issue { border-left-color: transparent; }
+  /* 対応しないと決めた問題は、一覧から消さずに薄くする */
+  .board tbody tr.st-wont td { opacity: .45; }
 
   /* 字下げで、2 行目以降の頭を記号の後ろにそろえる */
   .issue-head { display: grid; grid-template-columns: auto 1fr; gap: 0 7px; align-items: baseline; }
@@ -257,7 +277,7 @@
   .dialog-foot { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
 
   @media (max-width: 980px) {
-    /* 5 列は収まらないので横スクロール */
+    /* 7 列は収まらないので横スクロール */
     .board-scroll { overflow-x: auto; }
     .ex-row { grid-template-columns: 1fr; }
     /* 画面が狭いときは脇に寄せる余地がないので覆う */
@@ -274,14 +294,16 @@
       <div class="tally" id="tally"></div>
       <div class="tools">
         <button class="btn" id="open-extra">補足</button>
-        <button class="btn" id="export">メモを書き出す</button>
+        <button class="btn" id="export">書き出す</button>
       </div>
     </div>
-    <p class="meta" id="meta"></p>
   </header>
 
   <div class="tabs" role="tablist" id="tabs"></div>
-  <p class="scope-desc" id="scope-desc"></p>
+  <div class="scope-line">
+    <p class="scope-desc" id="scope-desc"></p>
+    <div class="filters" id="filters" role="group" aria-label="最も重い深刻度で絞り込む">最も重い深刻度</div>
+  </div>
 
   <div class="board-scroll">
     <table class="board" id="board">
@@ -292,6 +314,8 @@
           <th class="c-approach">対策の方向</th>
           <th class="c-find">指摘</th>
           <th class="c-scope">規模</th>
+          <th class="c-status">ステータス</th>
+          <th class="c-memo">メモ</th>
         </tr>
       </thead>
     </table>
@@ -330,7 +354,7 @@
             <textarea id="memo-global" placeholder="議論の結論、優先順位、担当など"></textarea>
           </div>
           <div class="store-warn" id="store-warn" hidden>
-            このブラウザではメモを保存できません。書き終えたら「メモを書き出す」で控えを取ってください。
+            このブラウザではステータスとメモを保存できません。書き終えたら「書き出す」で控えを取ってください。
           </div>
         </div>
         <div>
@@ -403,6 +427,19 @@
     try { localStorage.setItem(STORE, JSON.stringify(memos)); } catch (e) { canStore = false; }
   }
 
+  /* ステータスは選んだものだけを保存し、選んでいなければ指摘の対応状況から決める */
+  var STATUSES = ['未検討', '対応済み', '対応予定', '対応しない'];
+  function statusOf(s) {
+    var st = (memos.__status || {})[s.key];
+    if (st) return st;
+    return s.findings.every(function (f) { return f.resolved; }) ? '対応済み' : '未検討';
+  }
+  function saveStatus(k, v) {
+    var all = Object.assign({}, memos.__status || {});
+    all[k] = v;
+    saveMemo('__status', all);
+  }
+
   function el(tag, cls, text) {
     var n = document.createElement(tag);
     if (cls) n.className = cls;
@@ -446,38 +483,37 @@
     return w;
   }
 
-  /* ---- 見出しの集計 ---- */
-  var tally = { HIGH: 0, MEDIUM: 0, LOW: 0 }, nFind = 0, nDone = 0;
-  D.issues.forEach(function (s) {
-    s.findings.forEach(function (f) {
-      if (f.resolved) { nDone++; return; }
-      tally[f.sev]++;
-      nFind++;
-    });
-  });
+  /* ---- 見出しの集計。ステータスを対応済みにした問題の指摘は、対応済みに数える ---- */
   var tallyEl = document.getElementById('tally');
-  tallyEl.appendChild(el('span', null, '問題 '));
-  tallyEl.appendChild(el('b', null, String(D.issues.length)));
-  tallyEl.appendChild(el('span', null, ' / 未対応の指摘 '));
-  tallyEl.appendChild(el('b', null, String(nFind)));
-  ['HIGH', 'MEDIUM', 'LOW'].forEach(function (s) {
-    var w = el('span');
-    w.appendChild(el('span', 'sev ' + s, s));
-    w.appendChild(document.createTextNode(' '));
-    w.appendChild(el('b', null, String(tally[s])));
-    tallyEl.appendChild(w);
-  });
-  if (nDone) {
-    tallyEl.appendChild(el('span', null, '/ 対応済み '));
-    tallyEl.appendChild(el('b', null, String(nDone)));
+  function renderTally() {
+    var tally = { HIGH: 0, MEDIUM: 0, LOW: 0 }, nFind = 0, nDone = 0;
+    D.issues.forEach(function (s) {
+      var isDone = statusOf(s) === '対応済み';
+      s.findings.forEach(function (f) {
+        if (f.resolved || isDone) { nDone++; return; }
+        tally[f.sev]++;
+        nFind++;
+      });
+    });
+    tallyEl.textContent = '';
+    tallyEl.appendChild(el('span', null, '問題 '));
+    tallyEl.appendChild(el('b', null, String(D.issues.length)));
+    tallyEl.appendChild(el('span', null, ' / 未対応の指摘 '));
+    tallyEl.appendChild(el('b', null, String(nFind)));
+    ['HIGH', 'MEDIUM', 'LOW'].forEach(function (s) {
+      var w = el('span');
+      w.appendChild(el('span', 'sev ' + s, s));
+      w.appendChild(document.createTextNode(' '));
+      w.appendChild(el('b', null, String(tally[s])));
+      tallyEl.appendChild(w);
+    });
+    if (nDone) {
+      tallyEl.appendChild(el('span', null, '/ 対応済み '));
+      tallyEl.appendChild(el('b', null, String(nDone)));
+    }
   }
+  renderTally();
 
-  var m = D.meta;
-  /* 出典は meta.sources に、指摘の接頭辞ごとに 1 つ書く */
-  document.getElementById('meta').textContent = '出典: ' + (m.sources || []).map(function (s) {
-    var when = [s.revision, s.date].filter(Boolean).join('、');
-    return s.prefix + ' で始まる指摘は' + s.label + (when || s.note ? '(' + when + (s.note ? (when ? '。' : '') + s.note : '') + ')' : '');
-  }).join('、');
 
   function findingChip(f) {
     var c = el('button', 'chip ' + f.sev + (f.resolved ? ' done' : ''), f.id);
@@ -505,7 +541,7 @@
   var table = document.getElementById('board');
   var tabsEl = document.getElementById('tabs');
   var scopeDesc = document.getElementById('scope-desc');
-  var bodies = {}, tabs = {};
+  var bodies = {}, tabs = {}, tabCounts = {}, issueCounts = {};
   var board;
   D.scopes.forEach(function (sc) {
     board = el('tbody');
@@ -526,11 +562,46 @@
     t.type = 'button';
     t.setAttribute('role', 'tab');
     t.setAttribute('aria-controls', board.id);
-    t.appendChild(el('span', 'tab-count', nIssue ? String(nIssue) : '未調査'));
+    issueCounts[sc.key] = nIssue;
+    tabCounts[sc.key] = el('span', 'tab-count', nIssue ? String(nIssue) : '未調査');
+    t.appendChild(tabCounts[sc.key]);
     t.addEventListener('click', function () { selectScope(sc.key); });
     tabs[sc.key] = t;
     tabsEl.appendChild(t);
   });
+
+  /* 何も押していなければすべて出す。押した深刻度のどれかが、問題の未対応の指摘で最も重いものと一致する行だけを出す。
+     ステータスを対応済みにした問題は、見出しの集計と同じく未対応の指摘がないものとして扱う */
+  var sevFilter = {};
+  var filtersEl = document.getElementById('filters');
+  ['HIGH', 'MEDIUM', 'LOW'].forEach(function (sev) {
+    var b = el('button', 'pill ' + sev, sev);
+    b.type = 'button';
+    b.setAttribute('aria-pressed', 'false');
+    b.addEventListener('click', function () {
+      sevFilter[sev] = !sevFilter[sev];
+      b.setAttribute('aria-pressed', sevFilter[sev] ? 'true' : 'false');
+      applyFilter();
+    });
+    filtersEl.appendChild(b);
+  });
+  function applyFilter() {
+    var on = Object.keys(sevFilter).filter(function (k) { return sevFilter[k]; });
+    D.scopes.forEach(function (sc) {
+      var catRow = null, shown = 0;
+      function closeCat() { if (catRow) catRow.hidden = on.length > 0 && shown === 0; }
+      Array.prototype.forEach.call(bodies[sc.key].rows, function (tr) {
+        if (tr.classList.contains('cat-row')) { closeCat(); catRow = tr; shown = 0; return; }
+        var visible = !on.length ||
+          (tr.dataset.key != null && !tr.classList.contains('st-done') && on.indexOf(tr.dataset.worst) >= 0);
+        tr.hidden = !visible;
+        if (visible) shown++;
+      });
+      closeCat();
+      var n = bodies[sc.key].querySelectorAll('tr[data-key]:not([hidden])').length;
+      tabCounts[sc.key].textContent = on.length ? String(n) : (issueCounts[sc.key] ? String(issueCounts[sc.key]) : '未調査');
+    });
+  }
 
   function selectScope(key) {
     if (!bodies[key]) key = D.scopes[0].key;
@@ -555,7 +626,7 @@
   function addPlaceholder(c) {
     var tr = el('tr', 'ph-row');
     var td = el('td');
-    td.colSpan = 5;
+    td.colSpan = 7;
     td.appendChild(c.checkedAt
       ? el('div', 'ph-badge checked', '問題なし(' + c.checkedAt + ' に確認)')
       : el('div', 'ph-badge', '未調査'));
@@ -579,7 +650,7 @@
     });
     var hr = el('tr', 'cat-row');
     var th = el('th');
-    th.colSpan = 5;
+    th.colSpan = 7;
     th.scope = 'rowgroup';
     th.appendChild(el('span', 'cat-name', c.name));
     th.appendChild(el('span', 'cat-desc', c.desc));
@@ -599,6 +670,7 @@
   function addIssueRow(s) {
     var tr = el('tr', 'worst-' + (worstOf(s) || 'none'));
     tr.dataset.key = s.key;
+    tr.dataset.worst = worstOf(s) || '';
     tr.tabIndex = 0;
     tr.setAttribute('role', 'button');
 
@@ -619,6 +691,42 @@
     tr.appendChild(tdFind);
 
     tr.appendChild(el('td', 'c-scope', s.scope));
+
+    /* 行を押すと詳細が開くので、入力欄の操作は行に伝えない */
+    function keepInCell(n) {
+      n.addEventListener('click', function (ev) { ev.stopPropagation(); });
+      n.addEventListener('keydown', function (ev) { ev.stopPropagation(); });
+    }
+    var tdSt = el('td', 'c-status');
+    var sel = el('select');
+    sel.setAttribute('aria-label', s.key + ' のステータス');
+    STATUSES.forEach(function (v) { sel.appendChild(el('option', null, v)); });
+    sel.value = statusOf(s);
+    function markStatus() {
+      tr.classList.toggle('st-done', sel.value === '対応済み');
+      tr.classList.toggle('st-wont', sel.value === '対応しない');
+    }
+    markStatus();
+    sel.addEventListener('change', function () {
+      saveStatus(s.key, sel.value);
+      markStatus();
+      renderTally();
+      applyFilter();
+    });
+    keepInCell(sel);
+    tdSt.appendChild(sel);
+    tr.appendChild(tdSt);
+
+    var tdMemo = el('td', 'c-memo');
+    var rowMemo = el('textarea');
+    rowMemo.setAttribute('aria-label', s.key + ' のメモ');
+    rowMemo.cols = 10;
+    rowMemo.dataset.memoKey = s.key;
+    rowMemo.value = memos[s.key] || '';
+    rowMemo.addEventListener('input', function () { saveMemo(s.key, rowMemo.value); });
+    keepInCell(rowMemo);
+    tdMemo.appendChild(rowMemo);
+    tr.appendChild(tdMemo);
 
     tr.addEventListener('click', function () { openIssue(s.key); });
     tr.addEventListener('keydown', function (ev) {
@@ -826,7 +934,11 @@
     ta.id = 'memo-field';
     ta.placeholder = '採用する対策、懸念、担当など';
     ta.value = memos[s.key] || '';
-    ta.addEventListener('input', function () { saveMemo(s.key, ta.value); });
+    ta.addEventListener('input', function () {
+      saveMemo(s.key, ta.value);
+      var rowMemo = document.querySelector('textarea[data-memo-key="' + s.key + '"]');
+      if (rowMemo) rowMemo.value = ta.value;
+    });
     memo.appendChild(lb);
     memo.appendChild(ta);
     lower.appendChild(memo);
@@ -867,8 +979,11 @@
     sBody.appendChild(el('h3', null, '誰が、どういう条件で'));
     sBody.appendChild(el('p', null, f.cond));
 
-    sBody.appendChild(el('h3', null, '成立させられる立場'));
-    sBody.appendChild(el('p', null, f.zones.map(zoneName).join(' / ')));
+    /* 規程や契約の不足には攻撃者の立場がないので、見出しごと出さない */
+    if (f.zones.length) {
+      sBody.appendChild(el('h3', null, '成立させられる立場'));
+      sBody.appendChild(el('p', null, f.zones.map(zoneName).join(' / ')));
+    }
 
     sBody.appendChild(el('h3', null, '該当箇所'));
     var w = el('p');
@@ -914,18 +1029,14 @@
   var dlgText = document.getElementById('dlg-text');
   function buildMarkdown() {
     var out = ['# ' + TITLE + ' — メモ', ''];
-    out.push('書き出し ' + new Date().toISOString().slice(0, 10));
-    out.push('');
-    var any = false;
+    out.push('書き出し ' + new Date().toISOString().slice(0, 10), '');
     D.issues.forEach(function (s) {
+      out.push('## ' + s.key + '. ' + s.title, '', 'ステータス: ' + statusOf(s), '');
       var v = (memos[s.key] || '').trim();
-      if (!v) return;
-      any = true;
-      out.push('## ' + s.key + '. ' + s.title, '', v, '');
+      if (v) out.push(v, '');
     });
     var g = (memos.__global || '').trim();
-    if (g) { any = true; out.push('## 全体', '', g, ''); }
-    if (!any) out.push('(メモは空です)');
+    if (g) out.push('## 全体', '', g, '');
     return out.join('\n');
   }
   function copy(t) {
@@ -936,9 +1047,9 @@
     var md = buildMarkdown();
     dlgText.value = md;
     copy(md).then(function () {
-      document.getElementById('dlg-msg').textContent = 'メモを Markdown にしました。クリップボードにコピーしています。';
+      document.getElementById('dlg-msg').textContent = 'ステータスとメモを Markdown にしました。クリップボードにコピーしています。';
     }, function () {
-      document.getElementById('dlg-msg').textContent = 'メモを Markdown にしました。下の内容を選択してコピーしてください。';
+      document.getElementById('dlg-msg').textContent = 'ステータスとメモを Markdown にしました。下の内容を選択してコピーしてください。';
     });
     if (dlg.showModal) dlg.showModal(); else dlg.setAttribute('open', '');
   });
