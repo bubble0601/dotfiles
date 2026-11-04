@@ -13,6 +13,7 @@
 7. クラウドの設定(利用者に CLI を実行してもらう)
 8. 聞き取り
 9. 未調査を埋める
+10. 委託先としての統制
 
 ---
 
@@ -145,3 +146,32 @@ aws cloudtrail lookup-events --lookup-attributes AttributeKey=AccessKeyId,Attrib
   node -e "global.window={};require('./security-review.data.js');const D=window.SCAN;const u=new Set(D.issues.map(i=>i.category));D.categories.filter(c=>!u.has(c.key)&&!c.checkedAt).forEach(c=>console.log(c.scope,c.key,c.name))"
   ```
 - 調べて問題がなければ、消さずに `checkedAt` を付けて「問題なし」と表示し、points に調べた結果を書く
+
+## 10. 委託先としての統制(接頭辞の例: G)
+
+上場企業の情報システム部門が、委託先の SaaS と開発体制に求めるもの。攻撃の経路よりも「統制を文書と記録で示せるか」を見る。物差しは、経産省のクラウド利用ガイドライン、J-SOX の IT 全般統制、個人情報保護法の委託先の監督、番号法(マイナンバーを扱う場合)。
+
+- 規程・体制・契約は、別のタブ(例: gov「統制と契約」)に置く。攻撃者の立場がないので、指摘の zones は空でよい(表示側は空なら「成立させられる立場」を出さない)
+- 聞き取り(AskUserQuestion で 4 問ずつ):
+  - 基本方針・取扱規程・責任者、リスク評価と内部監査
+  - 秘密保持の誓約、定期の教育と訓練、業務委託の人の有無と契約
+  - 漏えいの通知の期限、SLA と障害の告知、監査の受け入れ、サブプロセッサの変更の通知
+  - 生成 AI の利用の決まり、開発端末の管理(MDM・暗号化・業務委託の個人 PC)、脆弱性の修正期限、設計段階のレビュー
+- コードで確かめるもの:
+  - 顧客の IdP との SSO(SAML/OIDC)と SCIM、利用者を消したときに IdP 側のユーザーも止めるか
+  - 会社ごとの IP 制限、顧客が自分で見られる操作の記録、自動ログアウトと Cookie の期限
+  - 職務の分離(入力と承認・確定・公開が別の権限か)
+  - 締め・確定・公開の後に変えられるデータと、前の値・変えた人が残るか、履歴が消える経路
+  - 当社の社員(全テナントに入れる管理者)が入ったことが記録され、顧客から見えるか
+  - ライセンスの検査と SBOM
+- 設定で確かめるもの:
+  - `gh api orgs/<org> --jq '{plan: .plan.name, members_can_create_public_repositories}'`、外部コラボレーター
+  - `curl -sS -o /dev/null -w "%{http_code}" https://<ドメイン>/.well-known/security.txt`
+  - 監査ログの改ざん防止と保管(利用者に実行してもらう):
+    ```sh
+    aws cloudtrail describe-trails --query 'trailList[].{Name:Name,Validation:LogFileValidationEnabled,Bucket:S3BucketName,KMS:KmsKeyId}' --output table
+    aws s3api get-object-lock-configuration --bucket <trail のバケット>
+    aws logs describe-log-groups --query 'logGroups[?contains(logGroupName, `prod`)].[logGroupName,retentionInDays]' --output text
+    ```
+- 給与・請求のような財務報告に入るデータを扱う製品では、J-SOX の観点で「締めた後の変更の記録」と「職務の分離」が中心の論点になる。業務ロジックの調査で載せないと決めた候補でも、この観点で利用者に判断し直してもらう
+- 第三者認証(ISMS など)を対象外にしている場合は、代わりの証跡(規程、外部診断の報告書)がないことが審査で止まる点だと伝える
